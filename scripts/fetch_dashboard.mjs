@@ -10,14 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseHTML } from 'linkedom';
 import {
-  pageTitle,
-  totalRounds,
-  isTeamTournament,
-  roundLinks,
-  parseIndividualRound,
-  parseTeamRound,
-  individualUrl,
-  teamRoundUrl,
+  loadTournament,
   parseTournamentInput,
 } from '../js/pairings.js';
 
@@ -67,26 +60,8 @@ async function readJson(file) {
 }
 
 /** Stáhne a přečte jeden turnaj. */
-export async function fetchTournament(tnr) {
-  const html = await fetchHtml(individualUrl(tnr));
-  const doc = toDocument(html);
-  const base = {
-    tnr,
-    title: pageTitle(doc),
-    rounds: totalRounds(doc),
-  };
-  if (isTeamTournament(doc)) {
-    const published = roundLinks(doc, 3);
-    const rd = Math.max(...published);
-    await sleep(1500);
-    const round = parseTeamRound(toDocument(await fetchHtml(teamRoundUrl(tnr, rd))));
-    if (!round) throw new Error(`v ${rd}. kole nejsou zápasy`);
-    return { ...base, kind: 'team', round: round.round ?? rd, date: round.date, time: round.time, matches: round.matches };
-  }
-  const round = parseIndividualRound(doc);
-  if (!round) throw new Error('na stránce není los kola (turnaj možná ještě není vylosovaný)');
-  return { ...base, kind: 'individual', round: round.round, date: round.date, time: round.time, pairings: round.pairings };
-}
+export const fetchTournament = (tnr) =>
+  loadTournament(tnr, async (url) => toDocument(await fetchHtml(url)), { pause: () => sleep(1500) });
 
 async function setConfig(a, b) {
   const cfg = (await readJson(CONFIG)) ?? { aktivni: true };
@@ -96,7 +71,7 @@ async function setConfig(a, b) {
     console.error('Zadej dvě čísla turnajů nebo odkazy na chess-results.com.');
     return 1;
   }
-  const out = { vlevo, vpravo, aktivni: true };
+  const out = { ...cfg, vlevo, vpravo, aktivni: true };
   await fs.writeFile(CONFIG, `${JSON.stringify(out, null, 2)}\n`);
   console.log(`Dashboard: vlevo ${vlevo}, vpravo ${vpravo}${cfg.aktivni === false ? ' (znovu zapnuto)' : ''}`);
   return 0;

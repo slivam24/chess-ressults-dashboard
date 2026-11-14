@@ -1,18 +1,23 @@
 // Dashboard: vlevo a vpravo los aktuálního kola dvou turnajů z chess-results.com.
 //
-// chess-results nepovoluje čtení z cizích stránek (CORS), proto los stahuje úloha na GitHubu
-// (.github/workflows/dashboard.yml) a ukládá ho do větve dashboard-data. Odtud ho stránka čte
-// každou minutu. Turnaj, který úloha nestahuje, se ukáže přímo jako stránka chess-results.
+// chess-results nepovoluje čtení z cizích stránek (CORS). Data proto jdou dvěma cestami:
+//   živě:    přes vlastního prostředníka (Cloudflare Worker, cloudflare-worker.js) každých 30 s,
+//            pro jakýkoli turnaj zadaný na stránce,
+//   GitHub:  bez prostředníka los stahuje úloha .github/workflows/dashboard.yml do větve
+//            dashboard-data (jen turnaje ze scripts/dashboard.json, zhruba po 10 minutách).
+// Turnaj bez dat se ukáže přímo jako stránka chess-results (obnovuje se každých 30 s).
 //
 // Parametry adresy:
-//   ?vlevo=1516901&vpravo=1507857   turnaje (číslo nebo odkaz); bez nich se vezmou ze stahování
+//   ?vlevo=1516901&vpravo=1507857   turnaje (číslo nebo odkaz)
+//   ?proxy=<adresa Workeru>         prostředník pro živé načítání (zapamatuje se v prohlížeči)
 //   ?tema=svetle                    světlý vzhled
-//   ?data=<adresa>                  jiný zdroj dat (pro vývoj)
+//   ?start=ne                       bez úvodního tlačítka celé obrazovky
+//   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
-import { parseTournamentInput, publicUrl } from './pairings.js';
+import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js';
 
 const REPO = 'slivam24/chess-ressults-dashboard';
-const REFRESH_MS = 60_000;
+const REFRESH_MS = 30_000;
 const STALE_MIN = 25;
 const IDLE_MS = 4000;
 const SCROLL_PX_S = 28;
@@ -32,15 +37,50 @@ const SLUG = repoSlug();
 const DATA_URL = params.get('data') || `https://raw.githubusercontent.com/${SLUG}/dashboard-data/dashboard.json`;
 const WORKFLOW_URL = `https://github.com/${SLUG}/actions/workflows/dashboard.yml`;
 
-let data = null;
+// paměť prohlížeče: jen pohodlí (poslední turnaje, adresa prostředníka), bez ní vše funguje dál
+const store = {
+  get(k) {
+    try {
+      return localStorage.getItem(`dashboard.${k}`) || '';
+    } catch {
+      return '';
+    }
+  },
+  set(k, v) {
+    try {
+      if (v) localStorage.setItem(`dashboard.${k}`, String(v));
+      else localStorage.removeItem(`dashboard.${k}`);
+    } catch {
+      /* soukromé okno apod. */
+    }
+  },
+};
+
+let cfg = {}; // scripts/dashboard.json z webu: výchozí turnaje a prostředník
+let data = null; // los z GitHubu
 let lastJson = '';
 let lastOk = null;
 let lastError = null;
+const live = {}; // los načtený živě, podle čísla turnaje
+let liveOk = null;
+let liveError = null;
 
-const chosen = () => ({
-  vlevo: parseTournamentInput(params.get('vlevo') || '') || data?.vlevo || null,
-  vpravo: parseTournamentInput(params.get('vpravo') || '') || data?.vpravo || null,
-});
+if (params.get('proxy') != null) store.set('proxy', params.get('proxy').trim());
+const proxyUrl = () => store.get('proxy') || cfg.proxy || '';
+
+const pick = (key) =>
+  parseTournamentInput(params.get(key) || '') ||
+  parseTournamentInput(store.get(key)) ||
+  parseTournamentInput(String(cfg[key] ?? '')) ||
+  data?.[key] ||
+  null;
+const chosen = () => ({ vlevo: pick('vlevo'), vpravo: pick('vpravo') });
+const tour = (tnr) => {
+  const l = live[tnr];
+  const g = data?.tournaments?.[tnr];
+  if (l?.pairings || l?.matches) return l;
+  return g && (g.pairings || g.matches) ? { ...g, error: l?.error || g.error } : l || g;
+};
 
 // ---------- pomocné ----------
 
@@ -126,9 +166,12 @@ function teamTable(t) {
 }
 
 function frameHtml(tnr, why) {
+  const how = proxyUrl()
+    ? ''
+    : ` Přehledné zobrazení: zadej turnaj v <a href="${WORKFLOW_URL}" target="_blank" rel="noopener">Actions → Dashboard → Run workflow</a>,
+      nebo zapni živé načítání (⚙ Turnaje).`;
   return `<div class="frame-wrap">
-    <div class="frame-note">${why} Zobrazuji přímo stránku chess-results.
-      Přehledné zobrazení: zadej turnaj v <a href="${WORKFLOW_URL}" target="_blank" rel="noopener">Actions → Dashboard → Run workflow</a>.</div>
+    <div class="frame-note">${why} Zobrazuji přímo stránku chess-results, obnovuje se každých 30 s.${how}</div>
     <iframe src="${esc(publicUrl(tnr))}" title="chess-results.com, turnaj ${tnr}" referrerpolicy="no-referrer"></iframe>
   </div>`;
 }
@@ -136,7 +179,7 @@ function frameHtml(tnr, why) {
 const panelState = new WeakMap();
 
 function renderPanel(el, tnr) {
-  const t = tnr ? data?.tournaments?.[tnr] : null;
+  const t = tnr ? tour(tnr) : null;
   let html;
   let table = false;
   if (!tnr) {
@@ -145,12 +188,12 @@ function renderPanel(el, tnr) {
   } else if (t?.pairings?.length || t?.matches?.length) {
     html = `${headHtml(t, tnr)}<div class="body"><div class="scroller">${t.kind === 'team' ? teamTable(t) : individualTable(t)}</div></div>`;
     table = true;
-  } else if (!data) {
+  } else if (!data && !liveOk && !liveError) {
     html = `<div class="empty-state"><span>Načítám los…</span></div>`;
   } else if (t?.error) {
     html = headHtml(t, tnr) + frameHtml(tnr, `Los se nepodařilo stáhnout (${esc(t.error)}).`);
   } else {
-    html = frameHtml(tnr, 'Tento turnaj se zatím nestahuje.');
+    html = frameHtml(tnr, proxyUrl() ? 'Načítám los…' : 'Tento turnaj se zatím nestahuje.');
   }
   const prev = panelState.get(el);
   if (prev?.html === html) return;
@@ -169,12 +212,21 @@ function render() {
   renderStatus();
 }
 
+const hhmmss = (d) => d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
 function renderStatus() {
   const s = [];
+  if (proxyUrl()) {
+    if (liveOk) s.push(`Živě z chess-results · obnoveno v ${hhmmss(liveOk)}`);
+    if (liveError) s.push(`<span class="bad">⚠ ${esc(liveError)}</span>`);
+    if (liveOk && Date.now() - liveOk > 3 * REFRESH_MS) s.push('<span class="warn">⚠ los se delší dobu neobnovil</span>');
+    $('status').innerHTML = s.join(' · ') || 'Načítám los…';
+    return;
+  }
   if (data?.generated) {
     const gen = new Date(data.generated);
     const age = Math.round((Date.now() - gen) / 60000);
-    const txt = `Los stažen z chess-results v ${hhmm(gen)}`;
+    const txt = `Los stažen přes GitHub v ${hhmm(gen)}`;
     s.push(age > STALE_MIN ? `<span class="warn">⚠ ${txt} (před ${age} min)</span>` : txt);
   }
   if (lastError) s.push(`<span class="bad">⚠ nelze načíst data${lastOk ? `, naposledy v ${hhmm(lastOk)}` : ''}</span>`);
@@ -198,7 +250,16 @@ function fit(panel) {
   scroller.style.transform = '';
   const H = body.clientHeight;
   const noOverflow = () => {
-    for (const n of table.querySelectorAll('.pl, .res, .line')) if (n.scrollWidth > n.clientWidth + 1) return false;
+    for (const n of table.querySelectorAll('.pl, .res')) if (n.scrollWidth > n.clientWidth) return false;
+    // scrollWidth se zaokrouhluje na celé pixely, takže o kousek delší jméno by prošlo se zkrácením;
+    // proto se měří skutečná šířka textu uvnitř řádku jména
+    for (const n of table.querySelectorAll('.line')) {
+      const r = n.getBoundingClientRect();
+      for (const k of n.querySelectorAll('.name, .piece, .ttl')) {
+        const kr = k.getBoundingClientRect();
+        if (kr.right > r.right + 0.01 || kr.left < r.left - 0.01) return false;
+      }
+    }
     if (table.classList.contains('wrap')) {
       // nejvýš dva řádky na jméno
       const max = parseFloat(table.style.fontSize) * 1.15 * 2 + 2;
@@ -275,7 +336,7 @@ window.addEventListener('resize', () => {
 
 // ---------- data ----------
 
-async function load() {
+async function loadGithub() {
   try {
     const sep = DATA_URL.includes('?') ? '&' : '?';
     const res = await fetch(`${DATA_URL}${sep}t=${Math.floor(Date.now() / 30000)}`, { cache: 'no-store' });
@@ -292,7 +353,68 @@ async function load() {
     lastError = e.message;
     if (!data) data = { tournaments: {} };
   }
-  render();
+}
+
+const parser = new DOMParser();
+async function getDoc(url) {
+  const proxy = proxyUrl();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20_000);
+  try {
+    const res = await fetch(`${proxy}${proxy.includes('?') ? '&' : '?'}url=${encodeURIComponent(url)}`, {
+      cache: 'no-store',
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`prostředník vrátil HTTP ${res.status}`);
+    return parser.parseFromString(await res.text(), 'text/html');
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? 'chess-results neodpověděl do 20 s' : e.message === 'Failed to fetch' ? 'prostředník nedostupný (zkontroluj adresu a internet)' : e.message);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function loadLive() {
+  const ids = [...new Set(Object.values(chosen()).filter(Boolean))];
+  let err = null;
+  for (const tnr of ids) {
+    try {
+      live[tnr] = { ...(await loadTournament(tnr, getDoc)), fetched: new Date().toISOString() };
+    } catch (e) {
+      err = `turnaj ${tnr}: ${e.message}`;
+      live[tnr] = live[tnr]?.pairings || live[tnr]?.matches ? { ...live[tnr], error: e.message } : { tnr, error: e.message };
+    }
+  }
+  if (err) liveError = err;
+  else {
+    liveError = null;
+    liveOk = new Date();
+  }
+}
+
+let loading = null;
+function load() {
+  // jedno načítání naráz; pomalý chess-results nesmí vrstvit požadavky
+  loading ??= (async () => {
+    try {
+      if (proxyUrl()) {
+        await loadLive();
+        // GitHub jen jako záloha, když živé načítání nejde
+        if (liveError && !data) await loadGithub();
+      } else {
+        await loadGithub();
+      }
+      render();
+    } finally {
+      loading = null;
+    }
+  })();
+  return loading;
+}
+
+// vložené stránky chess-results (turnaj bez dat) se obnovují stejně často
+function refreshFrames() {
+  for (const f of document.querySelectorAll('.frame-wrap iframe')) f.src = f.src;
 }
 
 // ---------- hodiny, celá obrazovka, nečinnost ----------
@@ -365,11 +487,13 @@ function openSettings() {
   $('inL').value = c.vlevo || '';
   $('inR').value = c.vpravo || '';
   $('settingsErr').textContent = '';
-  const known = data?.vlevo || data?.vpravo ? `Stahují se turnaje <b>${data.vlevo ?? '–'}</b> a <b>${data.vpravo ?? '–'}</b>.` : '';
-  $('settingsNote').innerHTML = `${known}
-    Jiný turnaj se tu ukáže hned, ale jen jako stránka chess-results. Aby byl v přehledném
-    zobrazení, zadej ho na GitHubu v <a href="${WORKFLOW_URL}" target="_blank" rel="noopener">Actions → Dashboard → Run workflow</a>
-    (los se pak obnovuje každých 10 minut). Odkaz na tuto stránku si turnaje pamatuje, dá se uložit do záložek.`;
+  $('inProxy').value = store.get('proxy') || '';
+  $('inProxy').placeholder = cfg.proxy ? `výchozí: ${cfg.proxy}` : 'https://neco.workers.dev';
+  $('settingsNote').innerHTML = proxyUrl()
+    ? 'Živé načítání je zapnuté: los se načítá přímo z chess-results každých 30 sekund, pro jakýkoli turnaj.'
+    : `Bez prostředníka se přehledně ukazují jen turnaje, které stahuje úloha na GitHubu
+      (<a href="${WORKFLOW_URL}" target="_blank" rel="noopener">Actions → Dashboard → Run workflow</a>, asi po 10 minutách).
+      Ostatní se ukážou jako stránka chess-results. Jak prostředníka zřídit, je v README repozitáře.`;
   $('settings').showModal();
 }
 
@@ -378,9 +502,12 @@ $('btnCancel').addEventListener('click', () => $('settings').close());
 $('btnDefault').addEventListener('click', () => {
   params.delete('vlevo');
   params.delete('vpravo');
+  store.set('vlevo', '');
+  store.set('vpravo', '');
   history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
   $('settings').close();
   render();
+  load();
 });
 $('settingsForm').addEventListener('submit', (e) => {
   const l = $('inL').value.trim();
@@ -392,11 +519,42 @@ $('settingsForm').addEventListener('submit', (e) => {
     $('settingsErr').textContent = 'Zadej číslo turnaje nebo odkaz na stránku turnaje na chess-results.com.';
     return;
   }
+  const proxy = $('inProxy').value.trim();
+  if (proxy && !/^https:\/\/[^\s/]+/i.test(proxy)) {
+    e.preventDefault();
+    $('settingsErr').textContent = 'Adresa prostředníka musí začínat https://';
+    return;
+  }
+  store.set('proxy', proxy);
+  params.delete('proxy');
   nl ? params.set('vlevo', nl) : params.delete('vlevo');
   nr ? params.set('vpravo', nr) : params.delete('vpravo');
-  history.replaceState(null, '', `${location.pathname}?${params}`);
+  store.set('vlevo', nl);
+  store.set('vpravo', nr);
+  history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
   render();
+  load();
 });
 
-load();
-setInterval(load, REFRESH_MS);
+async function init() {
+  try {
+    const res = await fetch(`scripts/dashboard.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) cfg = await res.json();
+  } catch {
+    /* bez výchozího nastavení to jde taky */
+  }
+  // turnaje z adresy si prohlížeč zapamatuje, příště stačí otevřít stránku bez parametrů
+  for (const k of ['vlevo', 'vpravo']) {
+    const n = parseTournamentInput(params.get(k) || '');
+    if (n) store.set(k, n);
+  }
+  if (params.has('proxy')) {
+    params.delete('proxy');
+    history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
+  }
+  render();
+  await load();
+  setInterval(load, REFRESH_MS);
+  setInterval(refreshFrames, REFRESH_MS);
+}
+init();

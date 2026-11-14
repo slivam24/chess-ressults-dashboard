@@ -73,3 +73,13 @@ test('číslo turnaje z čísla nebo odkazu', () => {
   assert.equal(parseTournamentInput('https://example.com/tnr1507857.aspx'), null);
   assert.equal(parseTournamentInput('abc'), null);
 });
+
+test('kola dopředu jen s nenasazenými hráči se přeskočí', () => {
+  // stránka má kola 9 až 1; 7.–9. kolo je zveřejněné jen s jedním nenasazeným hráčem
+  const r = parseIndividualRound(load('pairings-future-rounds.html'));
+  assert.equal(r.round, 6);
+  assert.equal(r.time, '16:50');
+  assert.equal(r.pairings.length, 13);
+  assert.equal(r.pairings[0].white.name, 'Černý, Čeněk');
+  assert.equal(r.pairings.at(-1).black.bye, true);
+});

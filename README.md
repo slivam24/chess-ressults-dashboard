@@ -19,26 +19,43 @@ Adresa: **https://slivam24.github.io/chess-ressults-dashboard/**
 
 Stačí číslo turnaje, nebo odkaz na kteroukoli jeho stránku na chess-results.com.
 
-1. **Actions → Dashboard → Run workflow**, vyplnit *Turnaj vlevo* a *Turnaj vpravo*. Turnaje se uloží do
-   `scripts/dashboard.json` a los se hned stáhne. Jde i upravit přímo `scripts/dashboard.json`.
-2. Jen na jednom zařízení: na dashboardu tlačítko **⚙ Turnaje** (klávesa **S**), nebo adresa
-   `?vlevo=1516901&vpravo=1507857`. Turnaj, který úloha nestahuje, se tak ukáže jako vložená stránka
-   chess-results; v přehledném zobrazení až po kroku 1.
+- Na dashboardu tlačítko **⚙ Turnaje** (klávesa **S**), nebo adresa `?vlevo=1529674&vpravo=1529675`.
+  Prohlížeč si turnaje zapamatuje, příště stačí otevřít stránku bez parametrů.
+- Výchozí turnaje pro všechny jsou v `scripts/dashboard.json` (jdou změnit i přes
+  **Actions → Dashboard → Run workflow**).
 
-## Odkud jsou data
+U turnaje jednotlivců se ukazuje nejnovější kolo, které je opravdu vylosované (kola dopředu
+zveřejněná jen s nenasazenými hráči se přeskočí), u turnaje družstev nejvyšší zveřejněné kolo.
 
-chess-results nedovoluje stránce z jiného webu číst svůj obsah (chybí hlavička `Access-Control-Allow-Origin`),
-proto los stahuje úloha `.github/workflows/dashboard.yml` **každých 10 minut** (GitHub ji občas o pár minut
-zpozdí) a ukládá ho do větve `dashboard-data` (jediný soubor `dashboard.json`, bez historie), takže v `main`
-nepřibývají commity. Stránka si ho načítá každou minutu. Když chess-results neodpoví, zůstane poslední los
-a dashboard to ukáže.
+## Živé načítání každých 30 sekund
 
-- Mimo turnaje jde stahování vypnout v `scripts/dashboard.json` hodnotou `"aktivni": false`.
-- Plánovaná úloha běží jen z větve `main`. GitHub ji vypne, když se v repozitáři 60 dní nic nezmění;
-  pak stačí v záložce Actions kliknout na **Enable workflow**.
+chess-results nedovoluje stránce z jiného webu číst svůj obsah (chybí hlavička `Access-Control-Allow-Origin`)
+a veřejní prostředníci (CORS proxy) nefungují. Proto je tu vlastní malý prostředník, `cloudflare-worker.js`,
+který běží zdarma na Cloudflare. S ním dashboard načítá los **přímo z chess-results každých 30 sekund,
+pro jakýkoli turnaj zadaný na stránce**. Prostředník pustí jen stránky turnajů na chess-results.com.
 
-U turnaje jednotlivců se čte stránka *Nasazení/Výsledky* (bez čísla kola ukazuje chess-results samo
-aktuální kolo), u turnaje družstev nejvyšší zveřejněné kolo. Parser je v `js/pairings.js`.
+Zřízení (jednou, asi 5 minut, v prohlížeči):
+
+1. Založ si účet na **https://dash.cloudflare.com/sign-up** (zdarma, stačí e-mail).
+2. V levém menu **Compute (Workers) → Workers & Pages → Create → Create Worker** (případně *Start with Hello World*).
+   Pojmenuj ho třeba `chess-proxy` a dej **Deploy**.
+3. **Edit code**, smaž ukázkový kód, vlož celý obsah souboru `cloudflare-worker.js` z tohoto repozitáře
+   a dej **Deploy**.
+4. Zkopíruj adresu Workeru, vypadá jako `https://chess-proxy.<tvuj-ucet>.workers.dev`.
+5. Adresu vlož buď do `scripts/dashboard.json` jako `"proxy": "https://…workers.dev"` (platí pro všechny
+   obrazovky), nebo jen na jednom zařízení do **⚙ Turnaje → Prostředník pro živé načítání**.
+
+Bezplatný tarif Cloudflare má 100 000 požadavků denně; dashboard jich potřebuje 2 až 4 za 30 sekund,
+tedy kolem 10 000 za celý den.
+
+## Bez prostředníka
+
+Bez prostředníka los stahuje úloha `.github/workflows/dashboard.yml` jen pro turnaje ze `scripts/dashboard.json`,
+plánovaně **každých 10 minut** (GitHub ji často zpozdí) a ukládá ho do větve `dashboard-data`.
+Ostatní turnaje se ukážou jako vložená stránka chess-results, která se obnovuje každých 30 sekund.
+Stahování přes GitHub jde vypnout hodnotou `"aktivni": false` v `scripts/dashboard.json`.
+GitHub plánovanou úlohu vypne, když se v repozitáři 60 dní nic nezmění; pak stačí v Actions kliknout
+na **Enable workflow**.
 
 ## Nasazení (GitHub Pages)
 

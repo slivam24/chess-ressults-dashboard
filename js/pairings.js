@@ -145,6 +145,9 @@ function player(cells, nameIdx, ratingIdx, pointsIdx) {
  * Sloupce se hledají podle záhlaví, protože se liší podle nastavení turnaje (tituly, kluby, federace).
  */
 export function parseIndividualRound(doc) {
+  // Stránka může mít všechna kola od nejnovějšího. Kola dopředu bývají zveřejněná jen
+  // s nevylosovanými hráči, proto vyhrává nejnovější kolo s aspoň jednou opravdovou partií.
+  let fallback = null;
   for (const table of doc.querySelectorAll('table.CRs1')) {
     const rows = [...table.querySelectorAll('tr')].filter((tr) => tr.closest('table') === table);
     const headIdx = rows.findIndex((tr) => directCells(tr).some((c) => /^(?:výsledek|výsl\.?|result|erg\.?|ergebnis|wynik|résultat)$/i.test(text(c))));
@@ -173,15 +176,20 @@ export function parseIndividualRound(doc) {
       if (b != null) {
         black = player(cells, b, bRating >= 0 ? bRating : null, bPoints >= 0 ? bPoints : null);
       } else {
-        // volno (bye): soupeř není, výsledek bývá '+' nebo body za volno
-        black = { name: 'volno', title: null, rating: null, points: null, bye: true };
+        // volno (bye) nebo nenasazený hráč: soupeř není
+        const rest = cells.slice(w + 1).map(text).join(' ');
+        const name = /nenasazen|not paired|nicht ausgelost/i.test(rest) ? 'nenasazen' : 'volno';
+        black = { name, title: null, rating: null, points: null, bye: true };
         if (BYE_RE.test(result)) result = '';
       }
       pairings.push({ board: /^\d{1,4}$/.test(board) ? Number(board) : board, white, black, result });
     }
-    if (pairings.length) return { ...(roundInfoFor(table) || {}), pairings };
+    if (!pairings.length) continue;
+    const round = { ...(roundInfoFor(table) || {}), pairings };
+    if (pairings.some((g) => !g.black?.bye)) return round;
+    fallback ??= round;
   }
-  return null;
+  return fallback;
 }
 
 /**
@@ -226,4 +234,24 @@ export function parseTournamentInput(raw) {
   if (/^\d{3,9}$/.test(t)) return Number(t);
   const m = /chess-results\.com\/tnr(\d{3,9})\.aspx/i.exec(t);
   return m ? Number(m[1]) : null;
+}
+
+/**
+ * Stáhne a přečte los aktuálního kola jednoho turnaje.
+ * getDoc(url) vrací Promise s dokumentem stránky (v Node přes linkedom, v prohlížeči přes DOMParser),
+ * takže stejný postup používá úloha na GitHubu i stránka při živém načítání.
+ */
+export async function loadTournament(tnr, getDoc, { pause = () => Promise.resolve() } = {}) {
+  const doc = await getDoc(individualUrl(tnr));
+  const base = { tnr, title: pageTitle(doc), rounds: totalRounds(doc) };
+  if (isTeamTournament(doc)) {
+    const rd = Math.max(...roundLinks(doc, 3));
+    await pause();
+    const round = parseTeamRound(await getDoc(teamRoundUrl(tnr, rd)));
+    if (!round) throw new Error(`v ${rd}. kole nejsou zápasy`);
+    return { ...base, kind: 'team', round: round.round ?? rd, date: round.date, time: round.time, matches: round.matches };
+  }
+  const round = parseIndividualRound(doc);
+  if (!round) throw new Error('na stránce není los kola (turnaj možná ještě není vylosovaný)');
+  return { ...base, kind: 'individual', round: round.round, date: round.date, time: round.time, pairings: round.pairings };
 }
