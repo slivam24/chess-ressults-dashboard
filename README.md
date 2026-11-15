@@ -34,7 +34,15 @@ a veřejní prostředníci (CORS proxy) nefungují. Proto je tu vlastní malý p
 který běží zdarma na Cloudflare. S ním dashboard načítá los **přímo z chess-results každých 30 sekund,
 pro jakýkoli turnaj zadaný na stránce**. Prostředník pustí jen stránky turnajů na chess-results.com.
 
-Zřízení (jednou, asi 5 minut, v prohlížeči):
+Zřízení přes GitHub (nejjednodušší, jde i z telefonu):
+
+1. Na **https://dash.cloudflare.com** v menu **Compute → Workers & Pages → Create → Connect GitHub**,
+   povolit přístup k repozitáři `chess-ressults-dashboard` a vybrat ho.
+2. Název projektu **`chess-proxy`** (musí odpovídat `wrangler.jsonc`), Build command nechat prázdný,
+   Deploy command `npx wrangler deploy`, a **Deploy**. Cloudflare pak prostředníka nasadí sám po každé změně v `main`.
+3. Adresu Workeru (`https://chess-proxy.<účet>.workers.dev`) vložit podle bodu 5 níže.
+
+Ruční zřízení (zkopírováním kódu):
 
 1. Založ si účet na **https://dash.cloudflare.com/sign-up** (zdarma, stačí e-mail).
 2. V levém menu **Compute (Workers) → Workers & Pages → Create → Create Worker** (případně *Start with Hello World*).

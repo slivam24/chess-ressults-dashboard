@@ -1,0 +1,11 @@
+// Nastavení pro Cloudflare Workers: nasadí se jen prostředník cloudflare-worker.js.
+// Při propojení s GitHubem ho Cloudflare nasadí sám po každé změně v main.
+// Název musí odpovídat názvu Workeru v Cloudflare.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chess-proxy",
+  "main": "cloudflare-worker.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "observability": { "enabled": true }
+}
