@@ -16,7 +16,7 @@
 //   ?sloupce=1|2                    pořadí v jednom / dvou sloupcích (výchozí automaticky)
 //   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
-import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js';
+import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=8';
 
 const REPO = 'slivam24/chess-ressults-dashboard';
 const REFRESH_MS = 30_000;
@@ -393,8 +393,8 @@ function fit(panel) {
     box.style.fontSize = `${size}px`;
     // Rozložení se při zvětšení nemění na „rating pod jménem“ (řádky by se natáhly do výšky);
     // když se jméno nevejde, schová se nejdřív rating a body, pak se jméno zalomí.
-    const stacked = pick.layout.includes('stack');
-    const order = zoom > 1 ? (stacked ? [pick.layout, 'stack wrap'] : [pick.layout, 'nometa', 'nometa wrap']) : [pick.layout];
+    const stacked = zoom < 1 && pick.layout.includes('stack');
+    const order = zoom > 1 ? ['', 'nometa', 'nometa wrap'] : [pick.layout];
     const ok = order.find((l) => {
       setLayout(l);
       return noOverflow();

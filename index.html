@@ -1,13 +1,14 @@
 <!doctype html>
 <html lang="cs">
 <head>
+  <!-- ?v=N u souborů: po každé úpravě zvýšit, aby prohlížeče nebraly starou verzi z mezipaměti -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Los kola</title>
   <meta name="description" content="Dashboard na celou obrazovku: los aktuálního kola dvou turnajů z chess-results.com vedle sebe.">
   <meta name="theme-color" content="#11161d">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/dashboard.css?v=8">
 </head>
 <body>
   <header class="bar" id="bar">
@@ -77,6 +78,6 @@
   </dialog>
 
   <noscript>Dashboard potřebuje zapnutý JavaScript.</noscript>
-  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="js/dashboard.js?v=8"></script>
 </body>
 </html>
