@@ -364,7 +364,7 @@ function fit(panel) {
   };
   const setLayout = (l) => {
     for (const t of tables) {
-      t.classList.remove('stack', 'wrap');
+      t.classList.remove('stack', 'wrap', 'nometa');
       if (l) t.classList.add(...l.split(' '));
     }
   };
@@ -391,7 +391,10 @@ function fit(panel) {
     // a co se nevejde na výšku, se posouvá
     const size = Math.min(200, Math.max(8, pick.size * zoom));
     box.style.fontSize = `${size}px`;
-    const order = zoom > 1 ? [pick.layout, ...LAYOUTS.filter((l) => l !== pick.layout)] : [pick.layout];
+    // Rozložení se při zvětšení nemění na „rating pod jménem“ (řádky by se natáhly do výšky);
+    // když se jméno nevejde, schová se nejdřív rating a body, pak se jméno zalomí.
+    const stacked = pick.layout.includes('stack');
+    const order = zoom > 1 ? (stacked ? [pick.layout, 'stack wrap'] : [pick.layout, 'nometa', 'nometa wrap']) : [pick.layout];
     const ok = order.find((l) => {
       setLayout(l);
       return noOverflow();
@@ -399,7 +402,7 @@ function fit(panel) {
     if (ok != null) setLayout(ok);
     else {
       // ani se zalomením se nevejde: tak velké písmo, aby se nelámala slova (víc řádků nevadí)
-      setLayout('stack wrap');
+      setLayout(stacked ? 'stack wrap' : 'nometa wrap');
       lineLimit = false;
       let lo = Math.min(pick.size, size);
       let hi = size;

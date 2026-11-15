@@ -21,7 +21,7 @@ Adresa: **https://slivam24.github.io/chess-ressults-dashboard/**
   (v ⚙ Turnaje jde nastavit vždy / nikdy, nebo adresou `?sloupce=2` / `?sloupce=1`).
   Volba se pamatuje, jde zadat i adresou `?zobrazeni=poradi` nebo `?zobrazeni=oba`.
 - **Velikost písma:** tlačítka **A−**, **A+** a **Auto**, nebo klávesy **−**, **+** a **0**. Zvětšení je násobek
-  automatické velikosti; co se pak nevejde, se pomalu posouvá. Volba se pamatuje.
+  automatické velikosti; při zvětšení se schová rating a body, dlouhá jména se zalomí a co se nevejde, se pomalu posouvá. Volba se pamatuje.
 - Výchozí vzhled je tmavý, světlý je `?tema=svetle`.
 
 ## Zadání turnajů

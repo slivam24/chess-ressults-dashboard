@@ -91,7 +91,7 @@ body.idle { cursor: none; }
 .flash {
   position: fixed;
   left: 50%;
-  top: calc(var(--bar-h) + 1rem);
+  bottom: 1.5rem;
   transform: translateX(-50%);
   background: var(--panel);
   border: 1px solid var(--accent);
@@ -218,6 +218,8 @@ table.pairs {
 .pairs.stack .right .meta { margin: 0.05em 1.07em 0 0; }
 /* dlouhá jména se zalomí (nejvýš na dva řádky) místo zkrácení */
 .pairs.wrap .line { white-space: normal; line-height: 1.15; }
+/* při ručním zvětšení: bez ratingu a bodů, ať se řádky nenatahují */
+.pairs.nometa .meta { display: none; }
 .pairs .win .name { color: var(--ok); }
 
 .piece {
