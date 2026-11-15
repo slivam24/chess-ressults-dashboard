@@ -10,12 +10,16 @@ Adresa: **https://slivam24.github.io/chess-ressults-dashboard/**
 - Po otevření se ukáže tlačítko **Spustit na celou obrazovku**. Prohlížeč dovolí celou obrazovku zapnout
   jen po kliknutí; pak ji přepíná klávesa **F**, **Esc** ji ukončí. `?start=ne` úvodní tlačítko vynechá.
 - Písmo se samo zvětší tak, aby se los vešel na výšku. Když má turnaj hodně šachovnic, los se pomalu posouvá.
+- Název turnaje je vždy na jednom řádku (dlouhý se zmenší).
 - Ovládání a kurzor po pár sekundách zmizí (pohyb myší je vrátí), obrazovka nezhasíná, nahoře jsou hodiny.
 - Turnaje jednotlivců: šachovnice, bílý, výsledek, černý, u hráčů rating a body. Turnaje družstev: zápasy
   kola se skóre. Hotové výsledky se doplňují samy, vítěz je zeleně.
-- **Los / Pořadí:** tlačítka nahoře nebo klávesa **P** (L zpět na los). Pořadí je „Pořadí po N. kole“
-  z chess-results s body a pomocnými hodnoceními; u družstev tabulka družstev. Volba se pamatuje,
-  jde zadat i adresou `?zobrazeni=poradi`.
+- **Los / Pořadí / Los + pořadí:** tlačítka nahoře nebo klávesy **L**, **P** a **O**. *Los + pořadí* ukáže
+  u jednoho turnaje (toho vlevo) los vlevo a pořadí vpravo. Pořadí je „Pořadí po N. kole“ z chess-results
+  s body a pomocnými hodnoceními (sloupce, které jsou u všech stejné, se vynechají); u družstev tabulka
+  družstev. Dlouhé pořadí se samo rozdělí do dvou sloupců, když se tak vejde celé nebo větším písmem
+  (v ⚙ Turnaje jde nastavit vždy / nikdy, nebo adresou `?sloupce=2` / `?sloupce=1`).
+  Volba se pamatuje, jde zadat i adresou `?zobrazeni=poradi` nebo `?zobrazeni=oba`.
 - **Velikost písma:** tlačítka **A−**, **A+** a **Auto**, nebo klávesy **−**, **+** a **0**. Zvětšení je násobek
   automatické velikosti; co se pak nevejde, se pomalu posouvá. Volba se pamatuje.
 - Výchozí vzhled je tmavý, světlý je `?tema=svetle`.

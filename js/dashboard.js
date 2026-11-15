@@ -12,7 +12,8 @@
 //   ?proxy=<adresa Workeru>         prostředník pro živé načítání (zapamatuje se v prohlížeči)
 //   ?tema=svetle                    světlý vzhled
 //   ?start=ne                       bez úvodního tlačítka celé obrazovky
-//   ?zobrazeni=poradi               místo losu pořadí (přepíná se i tlačítkem nebo klávesou P)
+//   ?zobrazeni=poradi|oba           pořadí, nebo vlevo los a vpravo pořadí levého turnaje
+//   ?sloupce=1|2                    pořadí v jednom / dvou sloupcích (výchozí automaticky)
 //   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
 import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js';
@@ -70,10 +71,12 @@ if (params.get('proxy') != null) store.set('proxy', params.get('proxy').trim());
 const proxyUrl = () => store.get('proxy') || cfg.proxy || '';
 
 // zobrazení: los, nebo pořadí; velikost písma: násobek automatické velikosti
-const VIEWS = { los: 'los', poradi: 'poradi', 'pořadí': 'poradi' };
+const VIEWS = { los: 'los', poradi: 'poradi', 'pořadí': 'poradi', oba: 'oba' };
 let view = VIEWS[(params.get('zobrazeni') || '').toLowerCase()] || store.get('view') || 'los';
 let zoom = Math.min(3, Math.max(0.4, Number(store.get('zoom')) || 1));
 const ZOOM_STEP = 1.15;
+// pořadí ve dvou sloupcích: auto (když to dovolí větší písmo), '2' vždy, '1' nikdy
+let columns = ['1', '2'].includes(params.get('sloupce')) ? params.get('sloupce') : store.get('columns') || 'auto';
 
 const pick = (key) =>
   parseTournamentInput(params.get(key) || '') ||
@@ -178,9 +181,20 @@ function teamTable(t) {
   return `<table class="pairs team"><tbody>${rows}</tbody></table>`;
 }
 
-function standingsTable(t) {
-  const st = t.standings;
-  const cols = st.columns.map((c, i) => `<th class="num${i === 0 ? ' main' : ''}">${esc(c)}</th>`).join('');
+/** Sloupce pořadí k zobrazení: bez pomocných hodnocení, která jsou u všech stejná; ve dvou sloupcích nejvýš tři. */
+function standingsColumns(st, max = 4) {
+  const keep = st.columns.map((_, j) => j === 0 || new Set(st.rows.map((r) => r.values[j])).size > 1);
+  return st.columns.map((_, j) => j).filter((j) => keep[j]).slice(0, max);
+}
+
+function standingsTable(t, list = t.standings.rows, max = 4) {
+  const cols = standingsColumns(t.standings, max);
+  const st = {
+    ...t.standings,
+    columns: cols.map((j) => t.standings.columns[j]),
+    rows: list.map((r) => ({ ...r, values: cols.map((j) => r.values[j]) })),
+  };
+  const head = st.columns.map((c, i) => `<th class="num${i === 0 ? ' main' : ''}">${esc(c)}</th>`).join('');
   const rows = st.rows
     .map((r, i) => {
       const same = i > 0 && st.rows[i - 1].rank === r.rank;
@@ -195,7 +209,7 @@ function standingsTable(t) {
     })
     .join('');
   const colgroup = `<colgroup><col class="c-bd"><col>${st.columns.map(() => '<col class="c-num">').join('')}</colgroup>`;
-  return `<table class="pairs stand">${colgroup}<thead><tr><th></th><th></th>${cols}</tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="pairs stand">${colgroup}<thead><tr><th></th><th></th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function frameHtml(tnr, why) {
@@ -211,15 +225,25 @@ function frameHtml(tnr, why) {
 
 const panelState = new WeakMap();
 
-function renderPanel(el, tnr) {
+function renderPanel(el, tnr, view) {
   const t = tnr ? tour(tnr) : null;
   let html;
   let table = false;
+  let variants = null;
   if (!tnr) {
     html = `<div class="empty-state"><strong>Není vybraný turnaj</strong>
       <span>Klikni na ⚙ Turnaje a zadej číslo nebo odkaz z chess-results.com.</span></div>`;
   } else if (view === 'poradi' && t?.standings?.rows?.length) {
-    html = `${headHtml(t, tnr, true)}<div class="body"><div class="scroller">${standingsTable(t)}</div></div>`;
+    const head = headHtml(t, tnr, true);
+    const rows = t.standings.rows;
+    html = `${head}<div class="body"><div class="scroller">${standingsTable(t, rows)}</div></div>`;
+    if (rows.length >= 8 && columns !== '1') {
+      const half = Math.ceil(rows.length / 2);
+      variants = [
+        html,
+        `${head}<div class="body"><div class="scroller"><div class="cols2">${standingsTable(t, rows.slice(0, half), 2)}${standingsTable(t, rows.slice(half), 2)}</div></div></div>`,
+      ];
+    }
     table = true;
   } else if (view === 'poradi' && (t?.pairings || t?.matches)) {
     const why = t.standingsError
@@ -241,19 +265,28 @@ function renderPanel(el, tnr) {
     html = frameHtml(tnr, proxyUrl() ? 'Načítám los…' : 'Tento turnaj se zatím nestahuje.');
   }
   const prev = panelState.get(el);
-  if (prev?.html === html) return;
+  const key = `${columns}|${html}`;
+  if (prev?.key === key) return;
   el.innerHTML = html;
-  panelState.set(el, { html, table });
+  panelState.set(el, { key, table, variants: variants ?? [html] });
+  fitTitle(el);
   if (table) {
-    fit(el);
-    document.fonts?.ready.then(() => fit(el));
+    layoutPanel(el);
+    document.fonts?.ready.then(() => layoutPanel(el));
   }
 }
 
-function render() {
+/** Co je v kterém panelu: los/pořadí dvou turnajů, nebo los a pořadí jednoho (levého) turnaje. */
+function panels() {
   const { vlevo, vpravo } = chosen();
-  renderPanel($('panelL'), vlevo);
-  renderPanel($('panelR'), vpravo);
+  if (view === 'oba') return [[vlevo, 'los'], [vlevo, 'poradi']];
+  return [[vlevo, view], [vpravo, view]];
+}
+
+function render() {
+  const [l, r] = panels();
+  renderPanel($('panelL'), ...l);
+  renderPanel($('panelR'), ...r);
   renderStatus();
 }
 
@@ -288,28 +321,33 @@ function renderStatus() {
 const LAYOUTS = ['', 'stack', 'stack wrap'];
 function fit(panel) {
   const body = panel.querySelector('.body');
-  const table = panel.querySelector('table.pairs');
-  if (!body || !table) return;
-  const scroller = body.querySelector('.scroller');
+  const scroller = body?.querySelector('.scroller');
+  const tables = [...(scroller?.querySelectorAll('table.pairs') ?? [])];
+  if (!tables.length) return 0;
+  // písmo se nastavuje na obal, tabulky (u pořadí ve dvou sloupcích jsou dvě) ho dědí
+  const box = scroller;
   stopScroll(panel);
   scroller.style.transform = '';
   const H = body.clientHeight;
   let lineLimit = true;
   const noOverflow = () => {
-    for (const n of table.querySelectorAll('.pl, .res, .num')) if (n.scrollWidth > n.clientWidth) return false;
+    for (const t of tables) if (t.offsetWidth > t.parentElement.clientWidth + 1) return false;
+    // jméno musí mít aspoň trochu místa (jinak by sloupce s čísly jméno úplně zmáčkly)
+    for (const n of box.querySelectorAll('.pl')) if (n.clientWidth < parseFloat(box.style.fontSize) * 4) return false;
+    for (const n of box.querySelectorAll('.pl, .res, .num')) if (n.scrollWidth > n.clientWidth) return false;
     // scrollWidth se zaokrouhluje na celé pixely, takže o kousek delší jméno by prošlo se zkrácením;
     // proto se měří skutečná šířka textu uvnitř řádku jména
-    for (const n of table.querySelectorAll('.line')) {
+    for (const n of box.querySelectorAll('.line')) {
       const r = n.getBoundingClientRect();
       for (const k of n.querySelectorAll('.name, .piece, .ttl')) {
         const kr = k.getBoundingClientRect();
         if (kr.right > r.right + 0.01 || kr.left < r.left - 0.01) return false;
       }
     }
-    if (lineLimit && table.classList.contains('wrap')) {
+    if (lineLimit && tables[0].classList.contains('wrap')) {
       // nejvýš dva řádky na jméno
-      const max = parseFloat(table.style.fontSize) * 1.15 * 2 + 2;
-      for (const n of table.querySelectorAll('.line')) if (n.offsetHeight > max) return false;
+      const max = parseFloat(box.style.fontSize) * 1.15 * 2 + 2;
+      for (const n of box.querySelectorAll('.line')) if (n.offsetHeight > max) return false;
     }
     return true;
   };
@@ -318,15 +356,17 @@ function fit(panel) {
     let hi = Math.min(80, Math.max(14, H / 4));
     for (let i = 0; i < 10; i++) {
       const mid = (lo + hi) / 2;
-      table.style.fontSize = `${mid}px`;
-      if (table.offsetHeight <= H && (heightOnly || noOverflow())) lo = mid;
+      box.style.fontSize = `${mid}px`;
+      if (box.offsetHeight <= H && (heightOnly || noOverflow())) lo = mid;
       else hi = mid;
     }
     return lo;
   };
   const setLayout = (l) => {
-    table.classList.remove('stack', 'wrap');
-    if (l) table.classList.add(...l.split(' '));
+    for (const t of tables) {
+      t.classList.remove('stack', 'wrap');
+      if (l) t.classList.add(...l.split(' '));
+    }
   };
   let pick = { layout: '', size: 0 };
   for (const l of LAYOUTS) {
@@ -336,19 +376,21 @@ function fit(panel) {
     if (size > pick.size * (l.includes('wrap') ? 1.3 : 1.15)) pick = { layout: l, size };
   }
   const MIN = 16;
+  let widthOk = true;
   if (pick.size < MIN) {
     // hodně šachovnic: raději čitelné písmo s posouváním, zkrácená jména nevadí tolik
     setLayout('');
     const size = best(true);
     pick = { layout: '', size: Math.max(MIN, size) };
+    widthOk = false;
   }
   setLayout(pick.layout);
-  table.style.fontSize = `${pick.size}px`;
+  box.style.fontSize = `${pick.size}px`;
   if (zoom !== 1) {
     // ruční velikost: násobek automatické; při zvětšení se hledá rozložení, kde se jména nezkracují,
     // a co se nevejde na výšku, se posouvá
     const size = Math.min(200, Math.max(8, pick.size * zoom));
-    table.style.fontSize = `${size}px`;
+    box.style.fontSize = `${size}px`;
     const order = zoom > 1 ? [pick.layout, ...LAYOUTS.filter((l) => l !== pick.layout)] : [pick.layout];
     const ok = order.find((l) => {
       setLayout(l);
@@ -363,19 +405,77 @@ function fit(panel) {
       let hi = size;
       for (let i = 0; i < 9; i++) {
         const mid = (lo + hi) / 2;
-        table.style.fontSize = `${mid}px`;
+        box.style.fontSize = `${mid}px`;
         if (noOverflow()) lo = mid;
         else hi = mid;
       }
       lineLimit = true;
-      table.style.fontSize = `${lo}px`;
+      box.style.fontSize = `${lo}px`;
     }
   }
-  if (table.offsetHeight > H + 2) startScroll(panel, scroller, table.offsetHeight - H);
+  const scroll = box.offsetHeight > H + 2;
+  if (scroll) startScroll(panel, scroller, box.offsetHeight - H);
+  return { size: pick.size, ok: widthOk, scroll };
+}
+
+/**
+ * Rozmístí obsah panelu. Pořadí může mít dvě podoby (jeden, nebo dva sloupce); automaticky
+ * vyhrají dva sloupce, když dovolí znatelně větší písmo.
+ */
+function layoutPanel(el) {
+  fitTitle(el);
+  const st = panelState.get(el);
+  if (!st?.table) return;
+  const [one, two] = st.variants;
+  if (!two) {
+    fit(el);
+    return;
+  }
+  const use = (html) => {
+    if (el.innerHTML !== html) {
+      el.innerHTML = html;
+      fitTitle(el);
+    }
+  };
+  if (columns === '2') {
+    use(two);
+    fit(el);
+    return;
+  }
+  use(one);
+  const s1 = fit(el);
+  if (columns === '1') return;
+  use(two);
+  const s2 = fit(el);
+  // dva sloupce, když se v nich jména nezkracují a buď se pořadí vejde celé (v jednom sloupci
+  // by se posouvalo), nebo je písmo znatelně větší
+  const better = s2.ok && !s2.scroll && (s1.scroll || !s1.ok || s2.size >= s1.size * 1.2);
+  if (!better) {
+    use(one);
+    fit(el);
+  }
+}
+
+/** Název turnaje na jeden řádek: písmo se zmenší, nejvýš na 55 %, pak se název zkrátí. */
+function fitTitle(el) {
+  const h = el.querySelector('.title');
+  if (!h) return;
+  h.style.fontSize = '';
+  const base = parseFloat(getComputedStyle(h).fontSize);
+  let lo = base * 0.55;
+  let hi = base;
+  if (h.scrollWidth <= h.clientWidth) return;
+  for (let i = 0; i < 8; i++) {
+    const mid = (lo + hi) / 2;
+    h.style.fontSize = `${mid}px`;
+    if (h.scrollWidth <= h.clientWidth) lo = mid;
+    else hi = mid;
+  }
+  h.style.fontSize = `${lo}px`;
 }
 
 function refitAll() {
-  for (const p of [$('panelL'), $('panelR')]) if (panelState.get(p)?.table) fit(p);
+  for (const p of [$('panelL'), $('panelR')]) layoutPanel(p);
 }
 
 function setZoom(z) {
@@ -388,8 +488,7 @@ function setZoom(z) {
 function setView(v) {
   view = v;
   store.set('view', v === 'los' ? '' : v);
-  $('btnLos').classList.toggle('on', v === 'los');
-  $('btnPoradi').classList.toggle('on', v === 'poradi');
+  markView();
   render();
   load();
 }
@@ -477,11 +576,13 @@ async function getDoc(url) {
 }
 
 async function loadLive() {
-  const ids = [...new Set(Object.values(chosen()).filter(Boolean))];
+  const want = panels();
+  const ids = [...new Set(want.map(([tnr]) => tnr).filter(Boolean))];
+  const needStandings = (tnr) => want.some(([id, v]) => id === tnr && v === 'poradi');
   let err = null;
   for (const tnr of ids) {
     try {
-      live[tnr] = { ...(await loadTournament(tnr, getDoc, { standings: view === 'poradi' })), fetched: new Date().toISOString() };
+      live[tnr] = { ...(await loadTournament(tnr, getDoc, { standings: needStandings(tnr) })), fetched: new Date().toISOString() };
     } catch (e) {
       err = `turnaj ${tnr}: ${e.message}`;
       live[tnr] = live[tnr]?.pairings || live[tnr]?.matches ? { ...live[tnr], error: e.message } : { tnr, error: e.message };
@@ -582,6 +683,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 's' || e.key === 'S') openSettings();
   if (e.key === 'p' || e.key === 'P') setView(view === 'poradi' ? 'los' : 'poradi');
   if (e.key === 'l' || e.key === 'L') setView('los');
+  if (e.key === 'o' || e.key === 'O') setView('oba');
   if (e.key === '+' || e.key === '=') setZoom(zoom * ZOOM_STEP);
   if (e.key === '-' || e.key === '_') setZoom(zoom / ZOOM_STEP);
   if (e.key === '0') setZoom(1);
@@ -592,8 +694,13 @@ $('btnPoradi').addEventListener('click', () => setView('poradi'));
 $('btnZoomIn').addEventListener('click', () => setZoom(zoom * ZOOM_STEP));
 $('btnZoomOut').addEventListener('click', () => setZoom(zoom / ZOOM_STEP));
 $('btnZoomAuto').addEventListener('click', () => setZoom(1));
-$('btnLos').classList.toggle('on', view === 'los');
-$('btnPoradi').classList.toggle('on', view === 'poradi');
+$('btnOba').addEventListener('click', () => setView('oba'));
+function markView() {
+  $('btnLos').classList.toggle('on', view === 'los');
+  $('btnPoradi').classList.toggle('on', view === 'poradi');
+  $('btnOba').classList.toggle('on', view === 'oba');
+}
+markView();
 
 // ---------- nastavení ----------
 
@@ -602,6 +709,7 @@ function openSettings() {
   $('inL').value = c.vlevo || '';
   $('inR').value = c.vpravo || '';
   $('settingsErr').textContent = '';
+  $('selColumns').value = columns;
   $('inProxy').value = store.get('proxy') || '';
   $('inProxy').placeholder = cfg.proxy ? `výchozí: ${cfg.proxy}` : 'https://neco.workers.dev';
   $('settingsNote').innerHTML = proxyUrl()
@@ -642,6 +750,9 @@ $('settingsForm').addEventListener('submit', (e) => {
   }
   store.set('proxy', proxy);
   params.delete('proxy');
+  columns = $('selColumns').value;
+  store.set('columns', columns === 'auto' ? '' : columns);
+  params.delete('sloupce');
   nl ? params.set('vlevo', nl) : params.delete('vlevo');
   nr ? params.set('vpravo', nr) : params.delete('vpravo');
   store.set('vlevo', nl);

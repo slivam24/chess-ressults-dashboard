@@ -123,10 +123,9 @@ body.idle { cursor: none; }
   font-size: clamp(1.1rem, 2.1vw, 3rem);
   line-height: 1.15;
   font-weight: 700;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sub {
   margin-top: 0.3vh;
@@ -142,7 +141,8 @@ body.idle { cursor: none; }
 }
 
 .body { flex: 1; min-height: 0; overflow: hidden; position: relative; }
-.scroller { will-change: transform; }
+.scroller { will-change: transform; font-size: 24px; /* přepisuje se podle místa */ }
+.cols2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 1.1em; align-items: start; }
 
 /* tabulka losu */
 table.pairs {
@@ -150,7 +150,7 @@ table.pairs {
   border-collapse: separate;
   border-spacing: 0 0.18em;
   table-layout: fixed;
-  font-size: 24px; /* přepisuje se podle místa */
+  font-size: 1em;
 }
 .pairs td {
   background: var(--row);
@@ -295,7 +295,7 @@ table.pairs {
 .settings h2 { margin: 0 0 0.3rem; font-size: 1.3rem; }
 .settings .hint { margin: 0 0 1rem; color: var(--muted); }
 .settings label { display: grid; gap: 0.3rem; margin-bottom: 0.8rem; font-weight: 600; }
-.settings input {
+.settings input, .settings select {
   font: inherit;
   font-weight: 400;
   padding: 0.55rem 0.7rem;

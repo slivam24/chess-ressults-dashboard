@@ -17,6 +17,7 @@
       <div class="seg" role="group" aria-label="Zobrazení">
         <button type="button" id="btnLos" title="Los aktuálního kola (L)">Los</button>
         <button type="button" id="btnPoradi" title="Pořadí (P)">Pořadí</button>
+        <button type="button" id="btnOba" title="Vlevo los, vpravo pořadí levého turnaje (O)">Los + pořadí</button>
       </div>
       <div class="seg" role="group" aria-label="Velikost písma">
         <button type="button" id="btnZoomOut" title="Zmenšit (−)" aria-label="Zmenšit">A−</button>
@@ -39,7 +40,7 @@
     <button type="button" id="btnStart" class="start-btn">
       <span class="start-icon" aria-hidden="true">⛶</span>
       Spustit na celou obrazovku
-      <small>F celá obrazovka · P los/pořadí · + − velikost · Esc ukončí</small>
+      <small>F celá obrazovka · L los · P pořadí · O los + pořadí · + − velikost · Esc ukončí</small>
     </button>
     <button type="button" id="btnStay" class="link-btn">Zůstat v okně</button>
   </div>
@@ -53,6 +54,13 @@
       </label>
       <label>Vpravo
         <input name="vpravo" id="inR" autocomplete="off" placeholder="např. 1507857">
+      </label>
+      <label>Pořadí ve dvou sloupcích
+        <select id="selColumns">
+          <option value="auto">Automaticky (když se tak vejde větší písmo)</option>
+          <option value="2">Vždy dva sloupce</option>
+          <option value="1">Jen jeden sloupec</option>
+        </select>
       </label>
       <label>Prostředník pro živé načítání <span class="opt">(Cloudflare Worker, nepovinné)</span>
         <input name="proxy" id="inProxy" autocomplete="off" inputmode="url" placeholder="https://neco.workers.dev">
