@@ -13,6 +13,11 @@ Adresa: **https://slivam24.github.io/chess-ressults-dashboard/**
 - Ovládání a kurzor po pár sekundách zmizí (pohyb myší je vrátí), obrazovka nezhasíná, nahoře jsou hodiny.
 - Turnaje jednotlivců: šachovnice, bílý, výsledek, černý, u hráčů rating a body. Turnaje družstev: zápasy
   kola se skóre. Hotové výsledky se doplňují samy, vítěz je zeleně.
+- **Los / Pořadí:** tlačítka nahoře nebo klávesa **P** (L zpět na los). Pořadí je „Pořadí po N. kole“
+  z chess-results s body a pomocnými hodnoceními; u družstev tabulka družstev. Volba se pamatuje,
+  jde zadat i adresou `?zobrazeni=poradi`.
+- **Velikost písma:** tlačítka **A−**, **A+** a **Auto**, nebo klávesy **−**, **+** a **0**. Zvětšení je násobek
+  automatické velikosti; co se pak nevejde, se pomalu posouvá. Volba se pamatuje.
 - Výchozí vzhled je tmavý, světlý je `?tema=svetle`.
 
 ## Zadání turnajů

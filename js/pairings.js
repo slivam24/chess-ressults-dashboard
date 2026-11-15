@@ -223,9 +223,65 @@ export function parseTeamRound(doc) {
   return null;
 }
 
+/**
+ * Pořadí turnaje (jednotlivci art=1, družstva art=46). Vrací { after, columns, rows } nebo null.
+ * Sloupce se hledají podle záhlaví; ukazují se body a pomocná hodnocení tak, jak je pojmenuje
+ * chess-results (např. 'PH 1'), nejvýš čtyři.
+ */
+export function parseStandings(doc) {
+  const isRank = (t) => /^(?:poř\.?|pořadí|rk\.?|rang|pos\.?|pl\.?|m\.?)$/i.test(t);
+  const isName = (t) => /^(?:jméno|name|družstvo|team|mannschaft|hráč|player|spieler)$/i.test(t);
+  const isRating = (t) => /^(?:rtg|elo|rating|rtgi|rtgn|fide|elo int|elo nat)$/i.test(t);
+  const isPoints = (t) => /^(?:body|pts\.?|pkt\.?|punkte|points|mp)$/i.test(t);
+  const isTb = (t) => /^(?:ph|tb|wtg|fw|bh|sb)\s*\d{1,2}$/i.test(t);
+  let after = null;
+  for (const h of doc.querySelectorAll('h2, h3')) {
+    const m = /(?:pořadí|ranking|rangliste|stand)\D{0,20}(\d{1,2})/i.exec(text(h));
+    if (m) {
+      after = Number(m[1]);
+      break;
+    }
+  }
+  for (const table of doc.querySelectorAll('table.CRs1')) {
+    const rows = [...table.querySelectorAll('tr')].filter((tr) => tr.closest('table') === table);
+    const headIdx = rows.findIndex((tr) => {
+      const t = directCells(tr).map(text);
+      return t.length > 2 && isRank(t[0]) && t.some(isName);
+    });
+    if (headIdx < 0) continue;
+    const head = directCells(rows[headIdx]).map(text);
+    const nameIdx = head.findIndex(isName);
+    const ratingIdx = head.findIndex(isRating);
+    const valueIdx = [head.findIndex(isPoints), ...head.map((t, i) => (isTb(t) ? i : -1))].filter((i) => i > nameIdx).slice(0, 4);
+    const out = [];
+    let lastRank = null;
+    for (const tr of rows.slice(headIdx + 1)) {
+      const cells = directCells(tr);
+      if (cells.length <= nameIdx) continue;
+      const name = text(cells[nameIdx]);
+      if (!name) continue;
+      const r = text(cells[0]).replace(/\.$/, '');
+      const rank = /^\d{1,4}$/.test(r) ? Number(r) : lastRank;
+      lastRank = rank;
+      const before = text(cells[nameIdx - 1]);
+      out.push({
+        rank,
+        name,
+        title: TITLE_RE.test(before) ? before : null,
+        rating: ratingIdx >= 0 ? num(text(cells[ratingIdx])) : null,
+        values: valueIdx.map((i) => text(cells[i]).replace(/\u00bd/g, '½').replace(/,5$/, '½').replace(/^0½$/, '½')),
+      });
+    }
+    if (out.length) return { after, columns: valueIdx.map((i) => head[i]), rows: out };
+  }
+  return null;
+}
+
 /** Adresy stránek. turdet=YES přidá hlavičku turnaje (počet kol). */
 export const individualUrl = (tnr) => `https://chess-results.com/tnr${tnr}.aspx?lan=5&art=2&turdet=YES&zeilen=0`;
 export const teamRoundUrl = (tnr, rd) => `https://chess-results.com/tnr${tnr}.aspx?lan=5&art=3&rd=${rd}&turdet=NO&zeilen=0`;
+export const standingsUrl = (tnr, team) =>
+  `https://chess-results.com/tnr${tnr}.aspx?lan=5&art=${team ? 46 : 1}&turdet=NO&zeilen=0`;
 export const publicUrl = (tnr) => `https://chess-results.com/tnr${tnr}.aspx?lan=5&art=2`;
 
 /** Číslo turnaje z čísla nebo odkazu na kteroukoli stránku turnaje. */
@@ -241,17 +297,29 @@ export function parseTournamentInput(raw) {
  * getDoc(url) vrací Promise s dokumentem stránky (v Node přes linkedom, v prohlížeči přes DOMParser),
  * takže stejný postup používá úloha na GitHubu i stránka při živém načítání.
  */
-export async function loadTournament(tnr, getDoc, { pause = () => Promise.resolve() } = {}) {
+export async function loadTournament(tnr, getDoc, { pause = () => Promise.resolve(), standings = false } = {}) {
   const doc = await getDoc(individualUrl(tnr));
   const base = { tnr, title: pageTitle(doc), rounds: totalRounds(doc) };
-  if (isTeamTournament(doc)) {
+  const team = isTeamTournament(doc);
+  let t;
+  if (team) {
     const rd = Math.max(...roundLinks(doc, 3));
     await pause();
     const round = parseTeamRound(await getDoc(teamRoundUrl(tnr, rd)));
     if (!round) throw new Error(`v ${rd}. kole nejsou zápasy`);
-    return { ...base, kind: 'team', round: round.round ?? rd, date: round.date, time: round.time, matches: round.matches };
+    t = { ...base, kind: 'team', round: round.round ?? rd, date: round.date, time: round.time, matches: round.matches };
+  } else {
+    const round = parseIndividualRound(doc);
+    if (!round) throw new Error('na stránce není los kola (turnaj možná ještě není vylosovaný)');
+    t = { ...base, kind: 'individual', round: round.round, date: round.date, time: round.time, pairings: round.pairings };
   }
-  const round = parseIndividualRound(doc);
-  if (!round) throw new Error('na stránce není los kola (turnaj možná ještě není vylosovaný)');
-  return { ...base, kind: 'individual', round: round.round, date: round.date, time: round.time, pairings: round.pairings };
+  if (standings) {
+    await pause();
+    try {
+      t.standings = parseStandings(await getDoc(standingsUrl(tnr, team)));
+    } catch (e) {
+      t.standingsError = e.message;
+    }
+  }
+  return t;
 }

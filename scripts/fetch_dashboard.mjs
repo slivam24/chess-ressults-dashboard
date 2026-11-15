@@ -61,7 +61,7 @@ async function readJson(file) {
 
 /** Stáhne a přečte jeden turnaj. */
 export const fetchTournament = (tnr) =>
-  loadTournament(tnr, async (url) => toDocument(await fetchHtml(url)), { pause: () => sleep(1500) });
+  loadTournament(tnr, async (url) => toDocument(await fetchHtml(url)), { pause: () => sleep(1500), standings: true });
 
 async function setConfig(a, b) {
   const cfg = (await readJson(CONFIG)) ?? { aktivni: true };

@@ -12,6 +12,7 @@
 //   ?proxy=<adresa Workeru>         prostředník pro živé načítání (zapamatuje se v prohlížeči)
 //   ?tema=svetle                    světlý vzhled
 //   ?start=ne                       bez úvodního tlačítka celé obrazovky
+//   ?zobrazeni=poradi               místo losu pořadí (přepíná se i tlačítkem nebo klávesou P)
 //   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
 import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js';
@@ -68,6 +69,12 @@ let liveError = null;
 if (params.get('proxy') != null) store.set('proxy', params.get('proxy').trim());
 const proxyUrl = () => store.get('proxy') || cfg.proxy || '';
 
+// zobrazení: los, nebo pořadí; velikost písma: násobek automatické velikosti
+const VIEWS = { los: 'los', poradi: 'poradi', 'pořadí': 'poradi' };
+let view = VIEWS[(params.get('zobrazeni') || '').toLowerCase()] || store.get('view') || 'los';
+let zoom = Math.min(3, Math.max(0.4, Number(store.get('zoom')) || 1));
+const ZOOM_STEP = 1.15;
+
 const pick = (key) =>
   parseTournamentInput(params.get(key) || '') ||
   parseTournamentInput(store.get(key)) ||
@@ -109,10 +116,16 @@ function winner(result) {
 
 // ---------- vykreslení ----------
 
-function headHtml(t, tnr) {
+function headHtml(t, tnr, standings = false) {
   const parts = [];
-  if (t?.round) parts.push(`<span class="round">${t.round}. kolo${t.rounds ? ` z ${t.rounds}` : ''}</span>`);
-  if (t?.date) parts.push(`${fmtDate(t.date)}${t.time ? ` ${t.time}` : ''}`);
+  if (standings) {
+    const after = t?.standings?.after ?? (t?.kind === 'team' && t.matches?.some((m) => m.result) ? t.round : null);
+    parts.push(`<span class="round">Pořadí${after ? ` po ${after}. kole` : ''}</span>`);
+    if (t?.rounds) parts.push(`${t.rounds} kol`);
+  } else {
+    if (t?.round) parts.push(`<span class="round">${t.round}. kolo${t.rounds ? ` z ${t.rounds}` : ''}</span>`);
+    if (t?.date) parts.push(`${fmtDate(t.date)}${t.time ? ` ${t.time}` : ''}`);
+  }
   const flag = t?.error ? `<span class="flag" title="${esc(t.error)}">⚠ poslední stažení selhalo</span>` : '';
   return `<div class="head">
     <h1 class="title">${esc(t?.title || `Turnaj ${tnr}`)}</h1>
@@ -165,6 +178,26 @@ function teamTable(t) {
   return `<table class="pairs team"><tbody>${rows}</tbody></table>`;
 }
 
+function standingsTable(t) {
+  const st = t.standings;
+  const cols = st.columns.map((c, i) => `<th class="num${i === 0 ? ' main' : ''}">${esc(c)}</th>`).join('');
+  const rows = st.rows
+    .map((r, i) => {
+      const same = i > 0 && st.rows[i - 1].rank === r.rank;
+      const ttl = r.title ? `<span class="ttl">${esc(r.title)}</span>` : '';
+      const meta = r.rating ? `<span class="meta">${r.rating}</span>` : '';
+      const vals = r.values.map((v, j) => `<td class="num${j === 0 ? ' main' : ''}">${esc(v)}</td>`).join('');
+      return `<tr${r.rank <= 3 && !same ? ` class="top${r.rank}"` : ''}>
+        <td class="bd">${same ? '' : esc(r.rank ?? '')}</td>
+        <td class="pl"><div class="pc"><span class="line">${ttl}<span class="name">${esc(r.name)}</span></span>${meta}</div></td>
+        ${vals}
+      </tr>`;
+    })
+    .join('');
+  const colgroup = `<colgroup><col class="c-bd"><col>${st.columns.map(() => '<col class="c-num">').join('')}</colgroup>`;
+  return `<table class="pairs stand">${colgroup}<thead><tr><th></th><th></th>${cols}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 function frameHtml(tnr, why) {
   const how = proxyUrl()
     ? ''
@@ -185,6 +218,18 @@ function renderPanel(el, tnr) {
   if (!tnr) {
     html = `<div class="empty-state"><strong>Není vybraný turnaj</strong>
       <span>Klikni na ⚙ Turnaje a zadej číslo nebo odkaz z chess-results.com.</span></div>`;
+  } else if (view === 'poradi' && t?.standings?.rows?.length) {
+    html = `${headHtml(t, tnr, true)}<div class="body"><div class="scroller">${standingsTable(t)}</div></div>`;
+    table = true;
+  } else if (view === 'poradi' && (t?.pairings || t?.matches)) {
+    const why = t.standingsError
+      ? `Pořadí se nepodařilo načíst (${esc(t.standingsError)}).`
+      : t.standings === null
+        ? 'Pořadí zatím není zveřejněné.'
+        : proxyUrl()
+          ? 'Načítám pořadí…'
+          : 'Pořadí se načte při dalším stažení přes GitHub (do 10 minut).';
+    html = `${headHtml(t, tnr, true)}<div class="empty-state"><span>${why}</span></div>`;
   } else if (t?.pairings?.length || t?.matches?.length) {
     html = `${headHtml(t, tnr)}<div class="body"><div class="scroller">${t.kind === 'team' ? teamTable(t) : individualTable(t)}</div></div>`;
     table = true;
@@ -249,8 +294,9 @@ function fit(panel) {
   stopScroll(panel);
   scroller.style.transform = '';
   const H = body.clientHeight;
+  let lineLimit = true;
   const noOverflow = () => {
-    for (const n of table.querySelectorAll('.pl, .res')) if (n.scrollWidth > n.clientWidth) return false;
+    for (const n of table.querySelectorAll('.pl, .res, .num')) if (n.scrollWidth > n.clientWidth) return false;
     // scrollWidth se zaokrouhluje na celé pixely, takže o kousek delší jméno by prošlo se zkrácením;
     // proto se měří skutečná šířka textu uvnitř řádku jména
     for (const n of table.querySelectorAll('.line')) {
@@ -260,7 +306,7 @@ function fit(panel) {
         if (kr.right > r.right + 0.01 || kr.left < r.left - 0.01) return false;
       }
     }
-    if (table.classList.contains('wrap')) {
+    if (lineLimit && table.classList.contains('wrap')) {
       // nejvýš dva řádky na jméno
       const max = parseFloat(table.style.fontSize) * 1.15 * 2 + 2;
       for (const n of table.querySelectorAll('.line')) if (n.offsetHeight > max) return false;
@@ -298,7 +344,63 @@ function fit(panel) {
   }
   setLayout(pick.layout);
   table.style.fontSize = `${pick.size}px`;
+  if (zoom !== 1) {
+    // ruční velikost: násobek automatické; při zvětšení se hledá rozložení, kde se jména nezkracují,
+    // a co se nevejde na výšku, se posouvá
+    const size = Math.min(200, Math.max(8, pick.size * zoom));
+    table.style.fontSize = `${size}px`;
+    const order = zoom > 1 ? [pick.layout, ...LAYOUTS.filter((l) => l !== pick.layout)] : [pick.layout];
+    const ok = order.find((l) => {
+      setLayout(l);
+      return noOverflow();
+    });
+    if (ok != null) setLayout(ok);
+    else {
+      // ani se zalomením se nevejde: tak velké písmo, aby se nelámala slova (víc řádků nevadí)
+      setLayout('stack wrap');
+      lineLimit = false;
+      let lo = Math.min(pick.size, size);
+      let hi = size;
+      for (let i = 0; i < 9; i++) {
+        const mid = (lo + hi) / 2;
+        table.style.fontSize = `${mid}px`;
+        if (noOverflow()) lo = mid;
+        else hi = mid;
+      }
+      lineLimit = true;
+      table.style.fontSize = `${lo}px`;
+    }
+  }
   if (table.offsetHeight > H + 2) startScroll(panel, scroller, table.offsetHeight - H);
+}
+
+function refitAll() {
+  for (const p of [$('panelL'), $('panelR')]) if (panelState.get(p)?.table) fit(p);
+}
+
+function setZoom(z) {
+  zoom = Math.min(3, Math.max(0.4, Math.round(z * 100) / 100));
+  store.set('zoom', zoom === 1 ? '' : zoom);
+  refitAll();
+  flash(zoom === 1 ? 'Velikost: automaticky' : `Velikost: ${Math.round(zoom * 100)} %`);
+}
+
+function setView(v) {
+  view = v;
+  store.set('view', v === 'los' ? '' : v);
+  $('btnLos').classList.toggle('on', v === 'los');
+  $('btnPoradi').classList.toggle('on', v === 'poradi');
+  render();
+  load();
+}
+
+let flashTimer;
+function flash(msg) {
+  const el = $('flash');
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => (el.hidden = true), 1500);
 }
 
 const scrolls = new WeakMap();
@@ -330,7 +432,7 @@ let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    for (const p of [$('panelL'), $('panelR')]) if (panelState.get(p)?.table) fit(p);
+    refitAll();
   }, 150);
 });
 
@@ -379,7 +481,7 @@ async function loadLive() {
   let err = null;
   for (const tnr of ids) {
     try {
-      live[tnr] = { ...(await loadTournament(tnr, getDoc)), fetched: new Date().toISOString() };
+      live[tnr] = { ...(await loadTournament(tnr, getDoc, { standings: view === 'poradi' })), fetched: new Date().toISOString() };
     } catch (e) {
       err = `turnaj ${tnr}: ${e.message}`;
       live[tnr] = live[tnr]?.pairings || live[tnr]?.matches ? { ...live[tnr], error: e.message } : { tnr, error: e.message };
@@ -478,7 +580,20 @@ document.addEventListener('keydown', (e) => {
   if ($('settings').open || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === 'f' || e.key === 'F') toggleFull();
   if (e.key === 's' || e.key === 'S') openSettings();
+  if (e.key === 'p' || e.key === 'P') setView(view === 'poradi' ? 'los' : 'poradi');
+  if (e.key === 'l' || e.key === 'L') setView('los');
+  if (e.key === '+' || e.key === '=') setZoom(zoom * ZOOM_STEP);
+  if (e.key === '-' || e.key === '_') setZoom(zoom / ZOOM_STEP);
+  if (e.key === '0') setZoom(1);
 });
+
+$('btnLos').addEventListener('click', () => setView('los'));
+$('btnPoradi').addEventListener('click', () => setView('poradi'));
+$('btnZoomIn').addEventListener('click', () => setZoom(zoom * ZOOM_STEP));
+$('btnZoomOut').addEventListener('click', () => setZoom(zoom / ZOOM_STEP));
+$('btnZoomAuto').addEventListener('click', () => setZoom(1));
+$('btnLos').classList.toggle('on', view === 'los');
+$('btnPoradi').classList.toggle('on', view === 'poradi');
 
 // ---------- nastavení ----------
 

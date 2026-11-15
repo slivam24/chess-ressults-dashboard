@@ -81,6 +81,27 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 body.idle .tools { opacity: 0; pointer-events: none; }
 body.idle { cursor: none; }
 
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; }
+.seg button + button { border-left: 0; }
+.seg button:first-child { border-radius: 8px 0 0 8px; }
+.seg button:last-child { border-radius: 0 8px 8px 0; }
+.seg button.on { background: var(--accent); border-color: var(--accent); color: #1a1205; font-weight: 700; }
+
+.flash {
+  position: fixed;
+  left: 50%;
+  top: calc(var(--bar-h) + 1rem);
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+  z-index: 5;
+}
+.flash[hidden] { display: none; }
+
 /* dva panely */
 .boards {
   height: calc(100% - var(--bar-h));
@@ -160,6 +181,25 @@ table.pairs {
 .pairs.team .res { width: 5.6em; }
 .pairs .res.empty { color: var(--muted); font-weight: 400; }
 .pairs .pl.right { text-align: right; }
+
+/* pořadí */
+.pairs th {
+  font-weight: 600;
+  font-size: 0.6em;
+  color: var(--muted);
+  padding: 0 0.45em 0.1em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.pairs .num { width: 3.3em; text-align: center; font-variant-numeric: tabular-nums; color: var(--muted); }
+.pairs col.c-bd { width: 2.6em; }
+.pairs col.c-num { width: 3.4em; }
+.pairs .num.main { color: var(--text); font-weight: 800; }
+.pairs.stand tr.top1 .bd, .pairs.stand tr.top2 .bd, .pairs.stand tr.top3 .bd { color: var(--text); }
+.pairs.stand tr.top1 td.bd { background: color-mix(in srgb, var(--accent) 45%, var(--row)); }
+.pairs.stand tr.top2 td.bd { background: color-mix(in srgb, var(--muted) 40%, var(--row)); }
+.pairs.stand tr.top3 td.bd { background: color-mix(in srgb, #c27a3a 45%, var(--row)); }
 .pairs .name { font-weight: 600; }
 .pairs .nb { white-space: nowrap; }
 .pairs .ttl { color: var(--accent); font-weight: 700; font-size: 0.78em; margin-right: 0.3em; }
@@ -177,7 +217,7 @@ table.pairs {
 .pairs.stack .meta, .pairs.stack .right .meta { margin: 0.05em 0 0 1.07em; }
 .pairs.stack .right .meta { margin: 0.05em 1.07em 0 0; }
 /* dlouhá jména se zalomí (nejvýš na dva řádky) místo zkrácení */
-.pairs.wrap .line { white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
+.pairs.wrap .line { white-space: normal; line-height: 1.15; }
 .pairs .win .name { color: var(--ok); }
 
 .piece {
@@ -280,5 +320,7 @@ table.pairs {
   .panel + .panel { border-left: 0; border-top: 2px solid var(--line); }
   .bar { padding: 0 16px; }
   .tools button { padding: 0.3rem 0.5rem; font-size: 0.85rem; }
+  .tools { flex-wrap: wrap; justify-content: flex-end; }
+  #btnZoomAuto { display: none; }
   .status { display: none; }
 }

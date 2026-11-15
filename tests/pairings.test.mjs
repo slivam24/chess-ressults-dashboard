@@ -11,6 +11,7 @@ import {
   roundLinks,
   totalRounds,
   pageTitle,
+  parseStandings,
 } from '../js/pairings.js';
 
 const load = (f) => parseHTML(fs.readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8')).document;
@@ -82,4 +83,20 @@ test('kola dopředu jen s nenasazenými hráči se přeskočí', () => {
   assert.equal(r.pairings.length, 13);
   assert.equal(r.pairings[0].white.name, 'Černý, Čeněk');
   assert.equal(r.pairings.at(-1).black.bye, true);
+});
+
+test('pořadí turnaje jednotlivců', () => {
+  const st = parseStandings(load('standings-individual.html'));
+  assert.equal(st.after, 6);
+  assert.deepEqual(st.columns, ['Body', 'PH 1', 'PH 2', 'PH 3']);
+  assert.deepEqual(st.rows[0], { rank: 1, name: 'Šedivý, Jakub', title: null, rating: 1081, values: ['5½', '0', '18', '20'] });
+  assert.equal(st.rows[1].rating, null); // Rtg 0
+  assert.ok(st.rows.length > 20);
+});
+
+test('pořadí turnaje družstev', () => {
+  const st = parseStandings(load('standings-team.html'));
+  assert.deepEqual(st.columns, ['PH 1', 'PH 2', 'PH 3']);
+  assert.equal(st.rows.length, 12);
+  assert.deepEqual(st.rows[0], { rank: 1, name: 'TJ Sokol Údlice "B"', title: null, rating: null, values: ['6', '11½', '10'] });
 });

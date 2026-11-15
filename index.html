@@ -14,6 +14,15 @@
     <div class="clock" id="clock" aria-label="Čas">--:--</div>
     <div class="status" id="status" role="status" aria-live="polite"></div>
     <div class="tools">
+      <div class="seg" role="group" aria-label="Zobrazení">
+        <button type="button" id="btnLos" title="Los aktuálního kola (L)">Los</button>
+        <button type="button" id="btnPoradi" title="Pořadí (P)">Pořadí</button>
+      </div>
+      <div class="seg" role="group" aria-label="Velikost písma">
+        <button type="button" id="btnZoomOut" title="Zmenšit (−)" aria-label="Zmenšit">A−</button>
+        <button type="button" id="btnZoomAuto" title="Automatická velikost (0)">Auto</button>
+        <button type="button" id="btnZoomIn" title="Zvětšit (+)" aria-label="Zvětšit">A+</button>
+      </div>
       <button type="button" id="btnSettings" title="Nastavení turnajů (S)">⚙ Turnaje</button>
       <button type="button" id="btnFull" title="Celá obrazovka (F)">⛶ Celá obrazovka</button>
     </div>
@@ -24,11 +33,13 @@
     <section class="panel" id="panelR" aria-label="Turnaj vpravo"></section>
   </main>
 
+  <div class="flash" id="flash" role="status" hidden></div>
+
   <div class="start" id="start" hidden>
     <button type="button" id="btnStart" class="start-btn">
       <span class="start-icon" aria-hidden="true">⛶</span>
       Spustit na celou obrazovku
-      <small>nebo klávesa F · Esc ukončí</small>
+      <small>F celá obrazovka · P los/pořadí · + − velikost · Esc ukončí</small>
     </button>
     <button type="button" id="btnStay" class="link-btn">Zůstat v okně</button>
   </div>
