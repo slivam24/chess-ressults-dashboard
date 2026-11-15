@@ -2,5 +2,5 @@
   "vlevo": 1529674,
   "vpravo": 1529675,
   "aktivni": true,
-  "proxy": ""
+  "proxy": "https://chess-proxy.slivam24.workers.dev"
 }
