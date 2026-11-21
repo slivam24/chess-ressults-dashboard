@@ -1,15 +1,16 @@
 name: Dashboard
 
-# Stahuje los aktuálního kola dvou turnajů z scripts/dashboard.json a ukládá ho do větve
-# dashboard-data (jediný soubor dashboard.json, bez historie), odkud ho čte index.html.
-# Do main se tak nic nezapisuje a nespouští se kvůli tomu testy ani nové nasazení stránek.
+# Záložní stažení losu bez prostředníka: los turnajů ze scripts/dashboard.json se uloží do větve
+# dashboard-data (jediný soubor dashboard.json, bez historie), odkud ho čte index.html, když
+# živé načítání přes Cloudflare nejde. Do main se nic nezapisuje.
 #
-# Běží každých 10 minut (GitHub plánované úlohy občas o pár minut zpozdí), po změně
-# scripts/dashboard.json a ručně přes Actions → Dashboard → Run workflow, kde jdou rovnou
-# zadat dva nové turnaje. Vypíná se v scripts/dashboard.json: "aktivni": false.
+# Běží jen po změně scripts/dashboard.json a ručně přes Actions → Dashboard → Run workflow
+# (kde jdou rovnou zadat dva nové turnaje). Plánované spouštění je vypnuté, protože dashboard
+# načítá los živě, jen když je otevřený. Kdyby bylo potřeba stahovat pravidelně (třeba bez
+# prostředníka), stačí vrátit:
+#   schedule:
+#     - cron: "*/10 * * * *"
 on:
-  schedule:
-    - cron: "*/10 * * * *"
   push:
     branches: [main]
     paths: [scripts/dashboard.json]

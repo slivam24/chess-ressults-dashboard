@@ -65,14 +65,16 @@ Ruční zřízení (zkopírováním kódu):
 Bezplatný tarif Cloudflare má 100 000 požadavků denně; dashboard jich potřebuje 2 až 4 za 30 sekund,
 tedy kolem 10 000 za celý den.
 
-## Bez prostředníka
+## Kdy se co stahuje
 
-Bez prostředníka los stahuje úloha `.github/workflows/dashboard.yml` jen pro turnaje ze `scripts/dashboard.json`,
-plánovaně **každých 10 minut** (GitHub ji často zpozdí) a ukládá ho do větve `dashboard-data`.
-Ostatní turnaje se ukážou jako vložená stránka chess-results, která se obnovuje každých 30 sekund.
-Stahování přes GitHub jde vypnout hodnotou `"aktivni": false` v `scripts/dashboard.json`.
-GitHub plánovanou úlohu vypne, když se v repozitáři 60 dní nic nezmění; pak stačí v Actions kliknout
-na **Enable workflow**.
+- **Jen když je dashboard otevřený a vidět.** Stránka načítá los a pořadí každých 30 s přes prostředníka.
+  Záložka na pozadí nebo minimalizované okno nestahuje nic; po návratu se los hned obnoví.
+  Když stránku nikdo nemá otevřenou, chess-results ani Cloudflare nic nedostávají.
+- **Úloha na GitHubu** (`.github/workflows/dashboard.yml`) je jen záloha pro případ, že prostředník nejde:
+  stáhne los turnajů ze `scripts/dashboard.json` do větve `dashboard-data`. Spouští se jen po změně
+  `scripts/dashboard.json` nebo ručně (**Actions → Dashboard → Run workflow**), pravidelné spouštění je vypnuté
+  (jak ho vrátit, je popsané v souboru úlohy). `"aktivni": false` ji vypne úplně.
+- Turnaj, pro který nejsou data, se ukáže jako vložená stránka chess-results (obnovuje se každých 30 s).
 
 ## Nasazení (GitHub Pages)
 

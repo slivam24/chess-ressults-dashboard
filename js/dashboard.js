@@ -16,7 +16,7 @@
 //   ?sloupce=1|2                    pořadí v jednom / dvou sloupcích (výchozí automaticky)
 //   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
-import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=9';
+import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=10';
 
 const REPO = 'slivam24/chess-ressults-dashboard';
 const REFRESH_MS = 30_000;
@@ -783,7 +783,14 @@ async function init() {
   }
   render();
   await load();
-  setInterval(load, REFRESH_MS);
-  setInterval(refreshFrames, REFRESH_MS);
+  // načítá se jen na viditelné stránce: záložka na pozadí ani minimalizované okno nic nestahují
+  setInterval(() => document.visibilityState === 'visible' && load(), REFRESH_MS);
+  setInterval(() => document.visibilityState === 'visible' && refreshFrames(), REFRESH_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      load();
+      refreshFrames();
+    }
+  });
 }
 init();
