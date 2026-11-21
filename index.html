@@ -8,7 +8,7 @@
   <meta name="description" content="Dashboard na celou obrazovku: los aktuálního kola dvou turnajů z chess-results.com vedle sebe.">
   <meta name="theme-color" content="#11161d">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/dashboard.css?v=10">
+  <link rel="stylesheet" href="css/dashboard.css?v=11">
 </head>
 <body>
   <header class="bar" id="bar">
@@ -37,18 +37,9 @@
 
   <div class="flash" id="flash" role="status" hidden></div>
 
-  <div class="start" id="start" hidden>
-    <button type="button" id="btnStart" class="start-btn">
-      <span class="start-icon" aria-hidden="true">⛶</span>
-      Spustit na celou obrazovku
-      <small>F celá obrazovka · L los · P pořadí · O los + pořadí · + − velikost · Esc ukončí</small>
-    </button>
-    <button type="button" id="btnStay" class="link-btn">Zůstat v okně</button>
-  </div>
-
   <dialog id="settings" class="settings">
     <form method="dialog" id="settingsForm">
-      <h2>Turnaje na dashboardu</h2>
+      <h2 id="settingsTitle">Turnaje na dashboardu</h2>
       <p class="hint">Číslo turnaje, nebo odkaz na kteroukoli jeho stránku na chess-results.com.</p>
       <label>Vlevo
         <input name="vlevo" id="inL" autocomplete="off" placeholder="např. 1516901 nebo https://chess-results.com/tnr1516901.aspx">
@@ -67,17 +58,19 @@
         <input name="proxy" id="inProxy" autocomplete="off" inputmode="url" placeholder="https://neco.workers.dev">
       </label>
       <p class="err" id="settingsErr" role="alert"></p>
+      <p class="keys">Na dashboardu: F celá obrazovka · L los · P pořadí · O los + pořadí · + − velikost · S turnaje · Esc ukončí celou obrazovku</p>
       <div class="note" id="settingsNote"></div>
       <div class="actions">
         <button type="button" id="btnDefault" class="link-btn">Výchozí turnaje</button>
         <span class="grow"></span>
         <button type="button" id="btnCancel">Zrušit</button>
-        <button type="submit" id="btnApply" class="primary">Zobrazit</button>
+        <button type="submit" id="btnApply">Zobrazit v okně</button>
+        <button type="submit" id="btnApplyFull" class="primary">⛶ Zobrazit na celou obrazovku</button>
       </div>
     </form>
   </dialog>
 
   <noscript>Dashboard potřebuje zapnutý JavaScript.</noscript>
-  <script type="module" src="js/dashboard.js?v=10"></script>
+  <script type="module" src="js/dashboard.js?v=11"></script>
 </body>
 </html>

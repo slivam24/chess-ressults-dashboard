@@ -11,12 +11,12 @@
 //   ?vlevo=1516901&vpravo=1507857   turnaje (číslo nebo odkaz)
 //   ?proxy=<adresa Workeru>         prostředník pro živé načítání (zapamatuje se v prohlížeči)
 //   ?tema=svetle                    světlý vzhled
-//   ?start=ne                       bez úvodního tlačítka celé obrazovky
+//   ?start=ne                       bez úvodního okna se zadáním turnajů (rovnou zobrazí turnaje)
 //   ?zobrazeni=poradi|oba           pořadí, nebo vlevo los a vpravo pořadí levého turnaje
 //   ?sloupce=1|2                    pořadí v jednom / dvou sloupcích (výchozí automaticky)
 //   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
-import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=10';
+import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=11';
 
 const REPO = 'slivam24/chess-ressults-dashboard';
 const REFRESH_MS = 30_000;
@@ -78,11 +78,11 @@ const ZOOM_STEP = 1.15;
 // pořadí ve dvou sloupcích: auto (když to dovolí větší písmo), '2' vždy, '1' nikdy
 let columns = ['1', '2'].includes(params.get('sloupce')) ? params.get('sloupce') : store.get('columns') || 'auto';
 
-const pick = (key) =>
+// turnaj: z adresy, naposledy zadaný v tomto prohlížeči, nebo výchozí ze scripts/dashboard.json
+const pick = (key, withDefaults = true) =>
   parseTournamentInput(params.get(key) || '') ||
   parseTournamentInput(store.get(key)) ||
-  parseTournamentInput(String(cfg[key] ?? '')) ||
-  data?.[key] ||
+  (withDefaults ? parseTournamentInput(String(cfg[key] ?? '')) || data?.[key] : null) ||
   null;
 const chosen = () => ({ vlevo: pick('vlevo'), vpravo: pick('vpravo') });
 const tour = (tnr) => {
@@ -283,7 +283,15 @@ function panels() {
   return [[vlevo, view], [vpravo, view]];
 }
 
+function renderWaiting() {
+  for (const el of [$('panelL'), $('panelR')]) {
+    el.innerHTML = '<div class="empty-state"><span>Zadej turnaje, které se mají zobrazit.</span></div>';
+    panelState.delete(el);
+  }
+}
+
 function render() {
+  if (!started) return;
   const [l, r] = panels();
   renderPanel($('panelL'), ...l);
   renderPanel($('panelR'), ...r);
@@ -653,7 +661,6 @@ async function toggleFull() {
   } catch {
     /* prohlížeč celou obrazovku nepovolil */
   }
-  $('start').hidden = true;
   keepAwake();
 }
 document.addEventListener('fullscreenchange', () => {
@@ -661,13 +668,6 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 $('btnFull').addEventListener('click', toggleFull);
-$('btnStart').addEventListener('click', toggleFull);
-$('btnStay').addEventListener('click', () => {
-  $('start').hidden = true;
-  keepAwake();
-});
-// celá obrazovka se dá zapnout jen po kliknutí, proto úvodní nabídka (kromě ?start=ne)
-if (!/^(ne|no|0)$/i.test(params.get('start') || '') && document.fullscreenEnabled) $('start').hidden = false;
 
 let idleTimer;
 function active() {
@@ -707,10 +707,24 @@ markView();
 
 // ---------- nastavení ----------
 
-function openSettings() {
-  const c = chosen();
+// Úvodní okno: po otevření stránky se nejdřív zadají turnaje (předvyplněné naposledy zadanými)
+// a teprve potom se cokoli načítá. ?start=ne ho přeskočí (např. pro záložku na sálovém počítači).
+let started = false;
+let startMode = false;
+
+function openSettings(start = false) {
+  startMode = start === true;
+  const c = startMode
+    ? { vlevo: pick('vlevo', false), vpravo: pick('vpravo', false) }
+    : chosen();
   $('inL').value = c.vlevo || '';
   $('inR').value = c.vpravo || '';
+  $('settingsTitle').textContent = startMode ? 'Které turnaje zobrazit?' : 'Turnaje na dashboardu';
+  $('btnCancel').hidden = startMode;
+  $('btnDefault').hidden = startMode;
+  $('btnApplyFull').hidden = isFull() || !document.fullscreenEnabled;
+  $('btnApply').textContent = $('btnApplyFull').hidden ? 'Zobrazit' : 'Zobrazit v okně';
+  $('btnApply').classList.toggle('primary', $('btnApplyFull').hidden);
   $('settingsErr').textContent = '';
   $('selColumns').value = columns;
   $('inProxy').value = store.get('proxy') || '';
@@ -721,9 +735,31 @@ function openSettings() {
       (<a href="${WORKFLOW_URL}" target="_blank" rel="noopener">Actions → Dashboard → Run workflow</a>, asi po 10 minutách).
       Ostatní se ukážou jako stránka chess-results. Jak prostředníka zřídit, je v README repozitáře.`;
   $('settings').showModal();
+  if (startMode && !$('inL').value) $('inL').focus();
 }
 
-$('btnSettings').addEventListener('click', openSettings);
+// v úvodním okně Esc nic nezavře: bez turnajů by nebylo co zobrazit
+$('settings').addEventListener('cancel', (e) => {
+  if (startMode) e.preventDefault();
+});
+
+function start() {
+  if (started) return;
+  started = true;
+  render();
+  load();
+  // načítá se jen na viditelné stránce: záložka na pozadí ani minimalizované okno nic nestahují
+  setInterval(() => document.visibilityState === 'visible' && load(), REFRESH_MS);
+  setInterval(() => document.visibilityState === 'visible' && refreshFrames(), REFRESH_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      load();
+      refreshFrames();
+    }
+  });
+}
+
+$('btnSettings').addEventListener('click', () => openSettings());
 $('btnCancel').addEventListener('click', () => $('settings').close());
 $('btnDefault').addEventListener('click', () => {
   params.delete('vlevo');
@@ -745,8 +781,13 @@ $('settingsForm').addEventListener('submit', (e) => {
     $('settingsErr').textContent = 'Zadej číslo turnaje nebo odkaz na stránku turnaje na chess-results.com.';
     return;
   }
+  if (startMode && !nl && !nr) {
+    e.preventDefault();
+    $('settingsErr').textContent = 'Zadej aspoň jeden turnaj.';
+    return;
+  }
   const proxy = $('inProxy').value.trim();
-  if (proxy && !/^https:\/\/[^\s/]+/i.test(proxy)) {
+  if (proxy && !/^(?:https:\/\/[^\s/]+|http:\/\/localhost\b)/i.test(proxy)) {
     e.preventDefault();
     $('settingsErr').textContent = 'Adresa prostředníka musí začínat https://';
     return;
@@ -761,8 +802,14 @@ $('settingsForm').addEventListener('submit', (e) => {
   store.set('vlevo', nl);
   store.set('vpravo', nr);
   history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
-  render();
-  load();
+  // celou obrazovku jde zapnout jen přímo po kliknutí, proto hned tady
+  if (e.submitter?.id === 'btnApplyFull' && !isFull()) toggleFull();
+  startMode = false;
+  if (!started) start();
+  else {
+    render();
+    load();
+  }
 });
 
 async function init() {
@@ -781,16 +828,10 @@ async function init() {
     params.delete('proxy');
     history.replaceState(null, '', `${location.pathname}${params.size ? `?${params}` : ''}`);
   }
-  render();
-  await load();
-  // načítá se jen na viditelné stránce: záložka na pozadí ani minimalizované okno nic nestahují
-  setInterval(() => document.visibilityState === 'visible' && load(), REFRESH_MS);
-  setInterval(() => document.visibilityState === 'visible' && refreshFrames(), REFRESH_MS);
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      load();
-      refreshFrames();
-    }
-  });
+  if (/^(ne|no|0)$/i.test(params.get('start') || '')) start();
+  else {
+    renderWaiting();
+    openSettings(true);
+  }
 }
 init();

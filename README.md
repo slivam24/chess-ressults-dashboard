@@ -7,8 +7,10 @@ Adresa: **https://slivam24.github.io/chess-ressults-dashboard/**
 
 ## Ovládání
 
-- Po otevření se ukáže tlačítko **Spustit na celou obrazovku**. Prohlížeč dovolí celou obrazovku zapnout
-  jen po kliknutí; pak ji přepíná klávesa **F**, **Esc** ji ukončí. `?start=ne` úvodní tlačítko vynechá.
+- Po otevření se ukáže okno **Které turnaje zobrazit?** s naposledy zadanými turnaji (pamatuje si je prohlížeč).
+  Dokud se turnaje nepotvrdí, nic se nenačítá. **Zobrazit na celou obrazovku** nebo **Zobrazit v okně**;
+  klávesa **F** pak celou obrazovku přepíná, **Esc** ji ukončí. `?start=ne` okno přeskočí a rovnou zobrazí
+  turnaje (např. záložka na sálovém počítači).
 - Písmo se samo zvětší tak, aby se los vešel na výšku. Když má turnaj hodně šachovnic, los se pomalu posouvá.
 - Název turnaje je vždy na jednom řádku (dlouhý se zmenší).
 - Ovládání a kurzor po pár sekundách zmizí (pohyb myší je vrátí), obrazovka nezhasíná, nahoře jsou hodiny.

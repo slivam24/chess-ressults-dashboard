@@ -310,7 +310,9 @@ table.pairs {
 .settings .err { color: var(--bad); min-height: 1.2em; margin: 0.2rem 0; }
 .settings .note { color: var(--muted); font-size: 0.92rem; line-height: 1.45; }
 .settings .note a { color: var(--accent); }
-.settings .actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+.settings .actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+.settings .actions [hidden] { display: none; }
+.settings .keys { color: var(--muted); font-size: 0.85rem; margin: 0.4rem 0 0.6rem; }
 .settings .grow { flex: 1; }
 .primary { background: var(--accent); color: #1a1205; border-color: var(--accent); font-weight: 700; }
 
