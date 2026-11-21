@@ -1,0 +1,1272 @@
+{
+ "generated": "2026-11-21T12:56:41Z",
+ "source": "chess-results.com",
+ "vlevo": 1529674,
+ "vpravo": 1529675,
+ "tournaments": {
+  "1529674": {
+   "tnr": 1529674,
+   "title": "Mistrovství Čech mládeže do 8 let 2026",
+   "rounds": null,
+   "kind": "individual",
+   "round": 9,
+   "date": "2026-11-15",
+   "time": "11:20",
+   "pairings": [
+    {
+     "board": 1,
+     "white": {
+      "name": "Šedivý, Jakub",
+      "title": null,
+      "rating": 1081,
+      "points": 7
+     },
+     "black": {
+      "name": "Tlustý, Ondřej",
+      "title": null,
+      "rating": 1035,
+      "points": 6
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 2,
+     "white": {
+      "name": "Shcherbatykh, Aleksandra",
+      "title": null,
+      "rating": 1049,
+      "points": 5.5
+     },
+     "black": {
+      "name": "Tichý, Vojtěch",
+      "title": null,
+      "rating": 1023,
+      "points": 5.5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 3,
+     "white": {
+      "name": "Muzikářová, Anna",
+      "title": null,
+      "rating": 1090,
+      "points": 5
+     },
+     "black": {
+      "name": "Veverková, Lidia Rose",
+      "title": null,
+      "rating": null,
+      "points": 5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 4,
+     "white": {
+      "name": "Morávek, Pavel",
+      "title": null,
+      "rating": 1021,
+      "points": 5
+     },
+     "black": {
+      "name": "Cibulka, Eliáš",
+      "title": null,
+      "rating": 1035,
+      "points": 5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 5,
+     "white": {
+      "name": "Mertl, Albert",
+      "title": null,
+      "rating": 1016,
+      "points": 5
+     },
+     "black": {
+      "name": "Pavlova, Eva",
+      "title": null,
+      "rating": 1029,
+      "points": 5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 6,
+     "white": {
+      "name": "Enkhbaatar, Enkh-Erdem",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "black": {
+      "name": "Jonáš, Jakub",
+      "title": null,
+      "rating": 1038,
+      "points": 4.5
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 7,
+     "white": {
+      "name": "Skalický, Vít",
+      "title": null,
+      "rating": 1003,
+      "points": 4.5
+     },
+     "black": {
+      "name": "Cölba, Richard",
+      "title": null,
+      "rating": 1014,
+      "points": 4
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 8,
+     "white": {
+      "name": "Vrchota, Jindřich",
+      "title": null,
+      "rating": 1100,
+      "points": 4
+     },
+     "black": {
+      "name": "Zadražil, Jonáš",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "result": "½ – ½"
+    },
+    {
+     "board": 9,
+     "white": {
+      "name": "Kučera, Jiří",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "black": {
+      "name": "Lopata, Matyáš",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 10,
+     "white": {
+      "name": "Pieter, Radek",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "black": {
+      "name": "Lejček, Tadeáš",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 11,
+     "white": {
+      "name": "Mertl, Alex",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "black": {
+      "name": "Havlíček, Alfred",
+      "title": null,
+      "rating": 1004,
+      "points": 3.5
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 12,
+     "white": {
+      "name": "Wyszyński, Eryk *)",
+      "title": null,
+      "rating": null,
+      "points": 6.5
+     },
+     "black": {
+      "name": "Ulrich, David",
+      "title": null,
+      "rating": 1102,
+      "points": 6
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 13,
+     "white": {
+      "name": "Ježek, Jiří",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "black": {
+      "name": "Strnadel, Jakub",
+      "title": null,
+      "rating": null,
+      "points": 3.5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 14,
+     "white": {
+      "name": "Pohanková, Adéla",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "black": {
+      "name": "Hložek, Jindřich",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 15,
+     "white": {
+      "name": "Vega, Vincent",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "black": {
+      "name": "Leonhardt, Eira",
+      "title": null,
+      "rating": null,
+      "points": 2.5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 16,
+     "white": {
+      "name": "Štěch, Sebastian",
+      "title": null,
+      "rating": null,
+      "points": 2
+     },
+     "black": {
+      "name": "Zmrzlý, Sebastián",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 17,
+     "white": {
+      "name": "Šimůnek, Antonín",
+      "title": null,
+      "rating": null,
+      "points": 2.5
+     },
+     "black": {
+      "name": "Mrózková, Marie",
+      "title": null,
+      "rating": null,
+      "points": 2
+     },
+     "result": "½ – ½"
+    },
+    {
+     "board": 18,
+     "white": {
+      "name": "Hroníková, Ellen",
+      "title": null,
+      "rating": null,
+      "points": 2.5
+     },
+     "black": {
+      "name": "volno",
+      "title": null,
+      "rating": null,
+      "points": null,
+      "bye": true
+     },
+     "result": ""
+    }
+   ],
+   "standings": {
+    "after": 9,
+    "columns": [
+     "Body",
+     "PH 1",
+     "PH 2",
+     "PH 3"
+    ],
+    "rows": [
+     {
+      "rank": 1,
+      "name": "Wyszyński, Eryk",
+      "title": null,
+      "rating": null,
+      "values": [
+       "7½",
+       "0",
+       "45",
+       "49"
+      ]
+     },
+     {
+      "rank": 2,
+      "name": "Tlustý, Ondřej",
+      "title": null,
+      "rating": 1035,
+      "values": [
+       "7",
+       "1",
+       "43½",
+       "46"
+      ]
+     },
+     {
+      "rank": 3,
+      "name": "Šedivý, Jakub",
+      "title": null,
+      "rating": 1081,
+      "values": [
+       "7",
+       "2",
+       "47½",
+       "51½"
+      ]
+     },
+     {
+      "rank": 4,
+      "name": "Shcherbatykh, Aleksandra",
+      "title": null,
+      "rating": 1049,
+      "values": [
+       "6½",
+       "0",
+       "43½",
+       "46"
+      ]
+     },
+     {
+      "rank": 5,
+      "name": "Mertl, Albert",
+      "title": null,
+      "rating": 1016,
+      "values": [
+       "6",
+       "0",
+       "47½",
+       "49½"
+      ]
+     },
+     {
+      "rank": 6,
+      "name": "Ulrich, David",
+      "title": null,
+      "rating": 1102,
+      "values": [
+       "6",
+       "0",
+       "42",
+       "45½"
+      ]
+     },
+     {
+      "rank": 7,
+      "name": "Morávek, Pavel",
+      "title": null,
+      "rating": 1021,
+      "values": [
+       "6",
+       "0",
+       "42",
+       "45"
+      ]
+     },
+     {
+      "rank": 8,
+      "name": "Muzikářová, Anna",
+      "title": null,
+      "rating": 1090,
+      "values": [
+       "6",
+       "0",
+       "41",
+       "45"
+      ]
+     },
+     {
+      "rank": 9,
+      "name": "Tichý, Vojtěch",
+      "title": null,
+      "rating": 1023,
+      "values": [
+       "5½",
+       "0",
+       "49",
+       "53"
+      ]
+     },
+     {
+      "rank": 10,
+      "name": "Jonáš, Jakub",
+      "title": null,
+      "rating": 1038,
+      "values": [
+       "5½",
+       "0",
+       "43",
+       "46½"
+      ]
+     },
+     {
+      "rank": 11,
+      "name": "Skalický, Vít",
+      "title": null,
+      "rating": 1003,
+      "values": [
+       "5½",
+       "0",
+       "38",
+       "41"
+      ]
+     },
+     {
+      "rank": 12,
+      "name": "Cibulka, Eliáš",
+      "title": null,
+      "rating": 1035,
+      "values": [
+       "5",
+       "0",
+       "44½",
+       "47½"
+      ]
+     },
+     {
+      "rank": 13,
+      "name": "Pavlova, Eva",
+      "title": null,
+      "rating": 1029,
+      "values": [
+       "5",
+       "0",
+       "43½",
+       "46"
+      ]
+     },
+     {
+      "rank": 14,
+      "name": "Lopata, Matyáš",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "40",
+       "43½"
+      ]
+     },
+     {
+      "rank": 15,
+      "name": "Veverková, Lidia Rose",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "40",
+       "43"
+      ]
+     },
+     {
+      "rank": 16,
+      "name": "Pieter, Radek",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "37½",
+       "40½"
+      ]
+     },
+     {
+      "rank": 17,
+      "name": "Zadražil, Jonáš",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4½",
+       "0",
+       "43",
+       "46"
+      ]
+     },
+     {
+      "rank": 18,
+      "name": "Vrchota, Jindřich",
+      "title": null,
+      "rating": 1100,
+      "values": [
+       "4½",
+       "0",
+       "40",
+       "44"
+      ]
+     },
+     {
+      "rank": 19,
+      "name": "Havlíček, Alfred",
+      "title": null,
+      "rating": 1004,
+      "values": [
+       "4½",
+       "0",
+       "33½",
+       "36"
+      ]
+     },
+     {
+      "rank": 20,
+      "name": "Enkhbaatar, Enkh-Erdem",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "43",
+       "46½"
+      ]
+     },
+     {
+      "rank": 21,
+      "name": "Ježek, Jiří",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "40½",
+       "42½"
+      ]
+     },
+     {
+      "rank": 22,
+      "name": "Lejček, Tadeáš",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "39½",
+       "42"
+      ]
+     },
+     {
+      "rank": 23,
+      "name": "Kučera, Jiří",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "39",
+       "41½"
+      ]
+     },
+     {
+      "rank": 24,
+      "name": "Cölba, Richard",
+      "title": null,
+      "rating": 1014,
+      "values": [
+       "4",
+       "0",
+       "37½",
+       "39½"
+      ]
+     },
+     {
+      "rank": 25,
+      "name": "Vega, Vincent",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "37",
+       "39½"
+      ]
+     },
+     {
+      "rank": 26,
+      "name": "Zmrzlý, Sebastián",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "32",
+       "34"
+      ]
+     },
+     {
+      "rank": 27,
+      "name": "Pohanková, Adéla",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "31",
+       "33½"
+      ]
+     },
+     {
+      "rank": 28,
+      "name": "Strnadel, Jakub",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3½",
+       "0",
+       "34½",
+       "38"
+      ]
+     },
+     {
+      "rank": 29,
+      "name": "Hroníková, Ellen",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3½",
+       "0",
+       "33½",
+       "35½"
+      ]
+     },
+     {
+      "rank": 30,
+      "name": "Mertl, Alex",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3",
+       "0",
+       "33",
+       "35½"
+      ]
+     },
+     {
+      "rank": 31,
+      "name": "Šimůnek, Antonín",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3",
+       "0",
+       "32",
+       "34½"
+      ]
+     },
+     {
+      "rank": 32,
+      "name": "Hložek, Jindřich",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3",
+       "0",
+       "31½",
+       "33½"
+      ]
+     },
+     {
+      "rank": 33,
+      "name": "Mrózková, Marie",
+      "title": null,
+      "rating": null,
+      "values": [
+       "2½",
+       "1",
+       "30½",
+       "32½"
+      ]
+     },
+     {
+      "rank": 34,
+      "name": "Leonhardt, Eira",
+      "title": null,
+      "rating": null,
+      "values": [
+       "2½",
+       "2",
+       "31½",
+       "33½"
+      ]
+     },
+     {
+      "rank": 35,
+      "name": "Štěch, Sebastian",
+      "title": null,
+      "rating": null,
+      "values": [
+       "2",
+       "0",
+       "29½",
+       "31½"
+      ]
+     }
+    ]
+   },
+   "fetched": "2026-11-21T12:56:36Z"
+  },
+  "1529675": {
+   "tnr": 1529675,
+   "title": "Cascade OPEN 2026 - doprovodný rapid turnaj při MČech do 10 let",
+   "rounds": null,
+   "kind": "individual",
+   "round": 9,
+   "date": "2026-11-15",
+   "time": "11:20",
+   "pairings": [
+    {
+     "board": 1,
+     "white": {
+      "name": "Hložek, Jan sr.",
+      "title": null,
+      "rating": 1894,
+      "points": 7.5
+     },
+     "black": {
+      "name": "Tran, Bao Nam",
+      "title": null,
+      "rating": null,
+      "points": 5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 2,
+     "white": {
+      "name": "Ramešová, Radka",
+      "title": null,
+      "rating": 1538,
+      "points": 4.5
+     },
+     "black": {
+      "name": "Hroník, Petr sr.",
+      "title": null,
+      "rating": 1894,
+      "points": 7
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 3,
+     "white": {
+      "name": "Černý, Čeněk",
+      "title": null,
+      "rating": 1505,
+      "points": 6
+     },
+     "black": {
+      "name": "Hroník, Petr jr.",
+      "title": null,
+      "rating": 1509,
+      "points": 5.5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 4,
+     "white": {
+      "name": "Lacaille, Florent",
+      "title": null,
+      "rating": 1573,
+      "points": 5
+     },
+     "black": {
+      "name": "Hložek, Jan jr.",
+      "title": null,
+      "rating": 1469,
+      "points": 4.5
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 5,
+     "white": {
+      "name": "Oliberius, Alex",
+      "title": null,
+      "rating": 1440,
+      "points": 4
+     },
+     "black": {
+      "name": "Zozulia, Jaroslav",
+      "title": null,
+      "rating": null,
+      "points": 4.5
+     },
+     "result": "½ – ½"
+    },
+    {
+     "board": 6,
+     "white": {
+      "name": "Najdenov, Jan",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "black": {
+      "name": "Pavlov, Lev",
+      "title": null,
+      "rating": 1476,
+      "points": 4
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 7,
+     "white": {
+      "name": "Mynařík, Marek",
+      "title": null,
+      "rating": null,
+      "points": 4
+     },
+     "black": {
+      "name": "Sádecký, Filip Martin",
+      "title": null,
+      "rating": 1014,
+      "points": 4
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 8,
+     "white": {
+      "name": "Obr, Adam",
+      "title": null,
+      "rating": 1424,
+      "points": 4
+     },
+     "black": {
+      "name": "Prokš, Michal",
+      "title": null,
+      "rating": null,
+      "points": 3.5
+     },
+     "result": "½ – ½"
+    },
+    {
+     "board": 9,
+     "white": {
+      "name": "Hrbolka, Oliver",
+      "title": null,
+      "rating": 1087,
+      "points": 3.5
+     },
+     "black": {
+      "name": "Skalický, Jakub",
+      "title": null,
+      "rating": 1014,
+      "points": 3.5
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 10,
+     "white": {
+      "name": "Pohanka, Matyáš",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "black": {
+      "name": "Chvalovský, Ondřej",
+      "title": null,
+      "rating": 1068,
+      "points": 3
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 11,
+     "white": {
+      "name": "Temuun, Od Ganchuluum",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "black": {
+      "name": "Václavík, Ondřej",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "result": "0 – 1"
+    },
+    {
+     "board": 12,
+     "white": {
+      "name": "Havlíčková, Valentýna",
+      "title": null,
+      "rating": null,
+      "points": 2
+     },
+     "black": {
+      "name": "Pisárek, Mirek",
+      "title": null,
+      "rating": null,
+      "points": 3
+     },
+     "result": "1 – 0"
+    },
+    {
+     "board": 13,
+     "white": {
+      "name": "Hrvol, Maxmilián",
+      "title": null,
+      "rating": null,
+      "points": 1
+     },
+     "black": {
+      "name": "nenasazen",
+      "title": null,
+      "rating": null,
+      "points": null,
+      "bye": true
+     },
+     "result": "0"
+    }
+   ],
+   "standings": {
+    "after": 9,
+    "columns": [
+     "Body",
+     "PH 1",
+     "PH 2",
+     "PH 3"
+    ],
+    "rows": [
+     {
+      "rank": 1,
+      "name": "Hložek, Jan sr.",
+      "title": null,
+      "rating": 1754,
+      "values": [
+       "8½",
+       "0",
+       "45½",
+       "49½"
+      ]
+     },
+     {
+      "rank": 2,
+      "name": "Hroník, Petr sr.",
+      "title": null,
+      "rating": 1823,
+      "values": [
+       "8",
+       "0",
+       "45½",
+       "49"
+      ]
+     },
+     {
+      "rank": 3,
+      "name": "Černý, Čeněk",
+      "title": null,
+      "rating": 1259,
+      "values": [
+       "7",
+       "0",
+       "45",
+       "49"
+      ]
+     },
+     {
+      "rank": 4,
+      "name": "Hroník, Petr jr.",
+      "title": null,
+      "rating": 1278,
+      "values": [
+       "5½",
+       "1",
+       "48",
+       "52"
+      ]
+     },
+     {
+      "rank": 5,
+      "name": "Hložek, Jan jr.",
+      "title": null,
+      "rating": 1094,
+      "values": [
+       "5½",
+       "2",
+       "45½",
+       "49½"
+      ]
+     },
+     {
+      "rank": 6,
+      "name": "Lacaille, Florent",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "47½",
+       "50½"
+      ]
+     },
+     {
+      "rank": 7,
+      "name": "Pavlov, Lev",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "44",
+       "47"
+      ]
+     },
+     {
+      "rank": 8,
+      "name": "Tran, Bao Nam",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "39",
+       "42"
+      ]
+     },
+     {
+      "rank": 9,
+      "name": "Zozulia, Jaroslav",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "36",
+       "38½"
+      ]
+     },
+     {
+      "rank": 10,
+      "name": "Mynařík, Marek",
+      "title": null,
+      "rating": null,
+      "values": [
+       "5",
+       "0",
+       "34",
+       "37"
+      ]
+     },
+     {
+      "rank": 11,
+      "name": "Ramešová, Radka",
+      "title": null,
+      "rating": 1068,
+      "values": [
+       "4½",
+       "0",
+       "45",
+       "47½"
+      ]
+     },
+     {
+      "rank": 12,
+      "name": "Obr, Adam",
+      "title": null,
+      "rating": 1343,
+      "values": [
+       "4½",
+       "0",
+       "43",
+       "46"
+      ]
+     },
+     {
+      "rank": 13,
+      "name": "Oliberius, Alex",
+      "title": null,
+      "rating": 1052,
+      "values": [
+       "4½",
+       "0",
+       "41",
+       "45"
+      ]
+     },
+     {
+      "rank": 14,
+      "name": "Hrbolka, Oliver",
+      "title": null,
+      "rating": 1087,
+      "values": [
+       "4½",
+       "0",
+       "40",
+       "43½"
+      ]
+     },
+     {
+      "rank": 15,
+      "name": "Najdenov, Jan",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "38½",
+       "41½"
+      ]
+     },
+     {
+      "rank": 16,
+      "name": "Sádecký, Filip Martin",
+      "title": null,
+      "rating": 1014,
+      "values": [
+       "4",
+       "0",
+       "38",
+       "41"
+      ]
+     },
+     {
+      "rank": 17,
+      "name": "Pohanka, Matyáš",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "34",
+       "37"
+      ]
+     },
+     {
+      "rank": 18,
+      "name": "Prokš, Michal",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "32",
+       "34½"
+      ]
+     },
+     {
+      "rank": 19,
+      "name": "Václavík, Ondřej",
+      "title": null,
+      "rating": null,
+      "values": [
+       "4",
+       "0",
+       "31",
+       "34"
+      ]
+     },
+     {
+      "rank": 20,
+      "name": "Skalický, Jakub",
+      "title": null,
+      "rating": 1014,
+      "values": [
+       "3½",
+       "0",
+       "36½",
+       "39½"
+      ]
+     },
+     {
+      "rank": 21,
+      "name": "Pisárek, Mirek",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3",
+       "0",
+       "32",
+       "35"
+      ]
+     },
+     {
+      "rank": 22,
+      "name": "Temuun, Od Ganchuluum",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3",
+       "0",
+       "31½",
+       "34"
+      ]
+     },
+     {
+      "rank": 23,
+      "name": "Chvalovský, Ondřej",
+      "title": null,
+      "rating": 1068,
+      "values": [
+       "3",
+       "0",
+       "31",
+       "33½"
+      ]
+     },
+     {
+      "rank": 24,
+      "name": "Havlíčková, Valentýna",
+      "title": null,
+      "rating": null,
+      "values": [
+       "3",
+       "0",
+       "29½",
+       "32½"
+      ]
+     },
+     {
+      "rank": 25,
+      "name": "Hrvol, Maxmilián",
+      "title": null,
+      "rating": null,
+      "values": [
+       "1",
+       "0",
+       "22½",
+       "23½"
+      ]
+     }
+    ]
+   },
+   "fetched": "2026-11-21T12:56:40Z"
+  }
+ }
+}
