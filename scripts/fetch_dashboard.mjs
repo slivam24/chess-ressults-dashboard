@@ -102,6 +102,8 @@ async function main() {
       ok++;
     } catch (e) {
       console.error(`tnr${tnr}: ! ${e.message}`);
+      // upozornění v Actions místo selhání: chyba chess-results nemá každých 10 minut posílat e-mail
+      if (process.env.GITHUB_ACTIONS) console.log(`::warning title=Turnaj ${tnr}::${e.message}`);
       tournaments[tnr] = old ? { ...old, error: e.message } : { tnr, error: e.message };
     }
     await sleep(1500);
@@ -117,7 +119,8 @@ async function main() {
   await fs.mkdir(path.dirname(path.resolve(outFile)), { recursive: true });
   await fs.writeFile(outFile, `${JSON.stringify(out, null, 1)}\n`, 'utf8');
   console.log(`Zapsáno ${outFile} (staženo ${ok} z ${Object.keys(tournaments).length})`);
-  return ok || !Object.keys(tournaments).length ? 0 : 1;
+  // Předchozí data zůstávají, takže selhání stažení není chyba úlohy (jen upozornění výše).
+  return 0;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) process.exit(await main());

@@ -157,11 +157,22 @@ export function parseIndividualRound(doc) {
     const isRating = (t) => /^(?:elo|rtg|rating|fide|rtgi|rtgn|nat|elo int|elo nat)$/i.test(t);
     const isPoints = (t) => /^(?:body|pts\.?|pkt\.?|punkte|points|pont)$/i.test(t);
 
+    // sloupce se jmény podle záhlaví: u skončených turnajů chess-results odkazy na hráče skrývá
+    const nameHead = head
+      .map((t, i) => (/^(?:white|black|bílý|černý|bílé|černé|jméno|name|weiß|schwarz|spieler|player)$/i.test(t) ? i : -1))
+      .filter((i) => i >= 0);
+
     const pairings = [];
     for (const tr of rows.slice(headIdx + 1)) {
       const cells = directCells(tr);
       if (cells.length < 3) continue;
-      const names = cells.map((c, i) => (playerLink(c) ? i : -1)).filter((i) => i >= 0);
+      let names = cells.map((c, i) => (playerLink(c) ? i : -1)).filter((i) => i >= 0);
+      if (!names.length && cells.length >= head.length - 1) {
+        names = nameHead.filter((i) => {
+          const t = text(cells[i]);
+          return t && !BYE_RE.test(t) && !/nenasazen|not paired/i.test(t);
+        });
+      }
       if (!names.length) continue;
       const board = text(cells[0]);
       const w = names[0];

@@ -100,3 +100,16 @@ test('pořadí turnaje družstev', () => {
   assert.equal(st.rows.length, 12);
   assert.deepEqual(st.rows[0], { rank: 1, name: 'TJ Sokol Údlice "B"', title: null, rating: null, values: ['6', '11½', '10'] });
 });
+
+test('skončený turnaj: jména bez odkazů na hráče', () => {
+  // chess-results po skončení turnaje odkazy na hráče skryje, jména se hledají podle záhlaví
+  const r = parseIndividualRound(load('pairings-finished.html'));
+  assert.equal(r.round, 9);
+  assert.equal(r.pairings.length, 18);
+  assert.equal(r.pairings[0].white.name, 'Šedivý, Jakub');
+  assert.equal(r.pairings[0].white.rating, 1081);
+  assert.equal(r.pairings[0].white.points, 7);
+  assert.equal(r.pairings[0].black.name, 'Tlustý, Ondřej');
+  assert.equal(r.pairings[0].result, '0 – 1');
+  assert.equal(r.pairings.at(-1).black.bye, true);
+});
