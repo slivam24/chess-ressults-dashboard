@@ -16,7 +16,7 @@
 //   ?sloupce=1|2                    pořadí v jednom / dvou sloupcích (výchozí automaticky)
 //   ?data=<adresa>                  jiný zdroj dat z GitHubu (pro vývoj)
 
-import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=8';
+import { parseTournamentInput, publicUrl, loadTournament } from './pairings.js?v=9';
 
 const REPO = 'slivam24/chess-ressults-dashboard';
 const REFRESH_MS = 30_000;
